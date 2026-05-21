@@ -36,7 +36,7 @@ Unlike fingerprinting methods, this application relies on a mathematical propaga
 ## Contributors
 This project was co-authored and developed by a team of 5 students:
 * **[Gabriele Triglia]**  - [GitHub Profile](https://github.com/GabrieleTrigliaUNIGE)
-* **[Alessio Marrazzo]**  - [GitHub Profile](https://github.com/username1)
+* **[Alessio Marrazzo]**  - [GitHub Profile](https://github.com/AlessioMarrazzo)
 * **[Loris Costanzo]**    - [GitHub Profile](https://github.com/username2)
 * **[Celeste Basso]**     - [GitHub Profile](https://github.com/username3)
 
