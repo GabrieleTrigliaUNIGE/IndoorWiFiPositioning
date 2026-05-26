@@ -1,0 +1,45 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvTitleDemo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/TitleDemo"
+        android:textSize="@dimen/Title" />
+
+    <Button
+        android:id="@+id/bttStartDemo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/Margin"
+        android:backgroundTint="@color/green"
+        android:text="@string/Start"
+        android:textColor="@color/black"
+        android:textSize="@dimen/Button"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvPolynomial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/Margin"
+        android:gravity="center_horizontal"
+        android:text="@string/Polynomial"
+        android:textSize="@dimen/Text"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvLog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/Margin"
+        android:gravity="center_horizontal"
+        android:text="@string/Log"
+        android:textSize="@dimen/Text"
+        android:textStyle="bold" />
+</LinearLayout>

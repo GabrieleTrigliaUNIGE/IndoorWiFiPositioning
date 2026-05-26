@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">IndoorWiFiPositioning</string>
+    <string name="TitleTraining"> Training</string>
+    <string name="TitleDemo">Demo</string>
+    <string name="Start">Start</string>
+    <string name="AccessPoint">Access Point:</string>
+    <string name="Coordinates">Coordinates:</string>
+    <string name="Polynomial">Polynomial approximation</string>
+    <string name="Log">Log distance</string>
 </resources>
