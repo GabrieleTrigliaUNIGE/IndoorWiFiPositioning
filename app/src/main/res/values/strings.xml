@@ -4,8 +4,9 @@
     <string name="TitleDemo">Demo</string>
     <string name="Start">Start</string>
     <string name="AccessPoint">Access Point:</string>
-    <string name="Coordinates">Coordinates:</string>
+    <string name="Coordinates">AP distance [m]:</string>
     <string name="Polynomial">Polynomial approximation</string>
     <string name="Log">Log distance</string>
     <string name="Indoor">APP WiFi Indoor</string>
+    <string name="MeasureNumber">Measure number: </string>
 </resources>
