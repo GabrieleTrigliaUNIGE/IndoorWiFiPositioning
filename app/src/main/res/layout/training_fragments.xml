@@ -7,9 +7,9 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/tvTitleTraining"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/Margin"
         android:gravity="center_horizontal"
         android:text="@string/TitleTraining"
         android:textSize="@dimen/Title"
@@ -25,7 +25,7 @@
         android:textStyle="italic" />
 
     <TextView
-        android:id="@+id/tvCoordinate"
+        android:id="@+id/tvCoordinates"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/Margin"

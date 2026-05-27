@@ -13,10 +13,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/Indoor"
-        android:textSize="24sp"
+        android:textSize="@dimen/Title"
         android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginTop="@dimen/Margin_main"/>
+        android:layout_marginTop="@dimen/Margin"/>
 
 
     <LinearLayout

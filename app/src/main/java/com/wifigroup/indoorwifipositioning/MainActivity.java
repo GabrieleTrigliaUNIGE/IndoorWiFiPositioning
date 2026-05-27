@@ -16,5 +16,25 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initViews();
+
+        if(savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragmentContainer, new TrainingFragment())
+                    .commit();
+        }
+
+        bttTraining.setOnClickListener( v -> {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, new TrainingFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+    }
+
+    private void initViews() {
+        bttTraining = findViewById(R.id.bttTraining);
+        bttDemo = findViewById(R.id.bttDemo);
     }
 }
