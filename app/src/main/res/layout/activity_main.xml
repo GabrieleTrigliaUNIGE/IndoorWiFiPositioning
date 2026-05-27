@@ -8,12 +8,24 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/titolo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Indoor"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginTop="@dimen/Margin_main"/>
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="horizontal"
-        android:layout_marginTop="@dimen/Margin_main">
+        android:layout_marginTop="@dimen/Margin">
 
         <Button
             android:id="@+id/bttTraining"
@@ -37,6 +49,7 @@
             android:backgroundTint="@color/blue"/>
 
     </LinearLayout>
+
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainer"
