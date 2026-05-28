@@ -43,6 +43,16 @@ public class TrainingFragment extends Fragment {
 
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
     private void initViews(View view) {
         tvAccessPoint = view.findViewById(R.id.tvAccessPoint);
         tvCoordinates = view.findViewById(R.id.tvCoordinates);
