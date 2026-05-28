@@ -8,5 +8,8 @@
     <string name="Polynomial">Polynomial approximation</string>
     <string name="Log">Log distance</string>
     <string name="Indoor">APP WiFi Indoor</string>
-    <string name="MeasureNumber">Measure number: </string>
+    <string name="MeasureNumber">Measure number: 0 / </string>
+    <string name="EsportaCSV">Esporta CSV </string>
+    <string name="AvviaScansione">Avvio della scansione</string>
+
 </resources>

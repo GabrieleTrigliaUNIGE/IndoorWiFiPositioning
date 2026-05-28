@@ -7,49 +7,62 @@
     android:orientation="vertical">
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/Margin"
-        android:gravity="center_horizontal"
-        android:text="@string/TitleTraining"
-        android:textSize="@dimen/Title"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvAccessPoint"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/Margin"
         android:text="@string/AccessPoint"
-        android:textSize="@dimen/Text"
-        android:textStyle="italic" />
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
-    <TextView
-        android:id="@+id/tvCoordinates"
+    <Spinner
+        android:id="@+id/spinnerAP"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/Margin"
+        android:layout_marginBottom="@dimen/Margin_bottom"/>
+
+    <TextView
         android:text="@string/Coordinates"
-        android:textSize="@dimen/Text"
-        android:textStyle="italic" />
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
-    <TextView
-        android:id="@+id/tvMeasure"
+    <Spinner
+        android:id="@+id/spinnerDistance"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/Margin"
-        android:text="@string/MeasureNumber"
-        android:textSize="@dimen/Text"
-        android:textStyle="italic" />
+        android:layout_marginBottom="@dimen/Margin_button"/>
 
-    <Button
-        android:id="@+id/bttStart"
+    <TextView
+        android:id="@+id/tvCurrentAP"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/Margin"
-        android:backgroundTint="@color/green"
-        android:text="@string/Start"
-        android:textColor="@color/black"
-        android:textSize="@dimen/Button"
-        android:textStyle="bold" />
+        android:textSize="16sp"
+        android:text="@string/AccessPoint"/>
+
+    <TextView
+        android:id="@+id/tvCurrentDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="@string/Coordinates"/>
+
+    <TextView
+        android:id="@+id/tvMeasureCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginBottom="@dimen/Margin_24"
+        android:text="@string/MeasureNumber"/>
+
+    <Button
+        android:id="@+id/bttStartScan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/AvviaScansione"
+        android:layout_marginBottom="@dimen/Margin_main"/>
+
+    <Button
+        android:id="@+id/bttExportCSV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/EsportaCSV"/>
+
 </LinearLayout>
