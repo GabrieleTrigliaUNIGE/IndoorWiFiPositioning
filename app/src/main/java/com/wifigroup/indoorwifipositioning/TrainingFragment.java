@@ -196,18 +196,28 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
 
-        String ap       = getSelectedAP();
-        int    distanza = getSelectedDistance();
-        int    required = REQUIRED.get(distanza);
-        int    done     = getMeasureCount(ap, distanza);
+        // Risultato dalla cache — non salviamo nulla
+        if (dBm == -998) {
+            Toast.makeText(getContext(),
+                    "⚠️ Scansione non fresca (cache). Aspetta qualche secondo e riprova.",
+                    Toast.LENGTH_LONG).show();
+            aggiornaUI();
+            return;
+        }
 
+        // AP non trovato nella scansione fresca
         if (dBm == -999) {
             Toast.makeText(getContext(),
-                    "AP \"" + ssid + "\" non trovato nella scansione",
+                    "\"" + ssid + "\" non trovato nella scansione",
                     Toast.LENGTH_SHORT).show();
             aggiornaUI();
             return;
         }
+
+        String ap       = getSelectedAP();
+        int    distanza = getSelectedDistance();
+        int    required = REQUIRED.get(distanza);
+        int    done     = getMeasureCount(ap, distanza);
 
         if (done >= required) {
             Toast.makeText(getContext(),
@@ -217,14 +227,14 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             return;
         }
 
-        // Salva la misura
+        // Solo qui salviamo — scansione fresca + AP trovato + misure non complete
         measureData
                 .computeIfAbsent(ap,       k -> new HashMap<>())
                 .computeIfAbsent(distanza, k -> new ArrayList<>())
                 .add(dBm);
 
         Log.i(TAG, "Salvato → AP=" + ap + " dist=" + distanza + "m dBm=" + dBm);
-        Toast.makeText(getContext(), "dBm: " + dBm, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "✓ dBm: " + dBm, Toast.LENGTH_SHORT).show();
 
         aggiornaUI();
     }

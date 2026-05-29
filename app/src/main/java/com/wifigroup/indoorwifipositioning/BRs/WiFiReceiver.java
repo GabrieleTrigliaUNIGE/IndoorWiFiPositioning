@@ -33,12 +33,20 @@ import java.util.List;
     @SuppressLint("MissingPermission")
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i(TAG, "onReceive — cerco SSID: " + targetSSID);
+        boolean scanFresh = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false);
+
+        Log.i(TAG, "Scansione fresca: " + scanFresh);
+
+        // Se Android ha restituito dati dalla cache, rifiutiamo la misura
+        if (!scanFresh) {
+            Log.w(TAG, "Risultati dalla cache — misura scartata");
+            wiFiScanCompleted.onWifiScanCompleted(targetSSID, -998);  // -998 = codice "cache"
+            return;
+        }
 
         List<ScanResult> wifiScan = wifiManager.getScanResults();
 
-        int dBm = -999;     // valore sentinella: AP non trovato
-
+        int dBm = -999;
         for (ScanResult result : wifiScan) {
             if (targetSSID != null && targetSSID.equals(result.SSID)) {
                 dBm = result.level;
