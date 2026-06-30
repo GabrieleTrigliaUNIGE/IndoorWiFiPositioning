@@ -70,6 +70,8 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     private WifiManager wifiManager   = null;
     private WiFiReceiver wiFiReceiver = null;
 
+    private boolean onlyOneScan = false;
+
     // ── Dati: AP → (distanza → lista dBm) ────────────────────────────────────
     //  CONTROLLLAAAAAAA
     private final Map<String, Map<Integer, List<Integer>>> measureData = new HashMap<>();
@@ -181,6 +183,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             // Dice al receiver quale SSID cercare
             wiFiReceiver.setTargetSSID(getSelectedAP());
 
+            onlyOneScan = true;
             wifiManager.startScan();
             Log.i(TAG, "Scan avviata per: " + getSelectedAP());
             tvMeasureCount.setText("Scansione in corso…");
@@ -196,14 +199,24 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
 
+        // Scansione automatica di Android/altre app: la scartiamo
+        if (!onlyOneScan) {
+            Toast.makeText(getContext(),
+                    "Scansione automatica di Android",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Risultato dalla cache — non salviamo nulla
         if (dBm == -998) {
             Toast.makeText(getContext(),
-                    "⚠️ Scansione non fresca (cache). Aspetta qualche secondo e riprova.",
+                    "Scansione vecchia (cache). Aspetta qualche secondo e riprova.",
                     Toast.LENGTH_LONG).show();
             aggiornaUI();
             return;
         }
+
+        onlyOneScan = false;
 
         // AP non trovato nella scansione fresca
         if (dBm == -999) {
