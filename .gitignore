@@ -16,3 +16,4 @@
 .cxx
 local.properties
 .idea/markdown.xml
+.idea/appInsightsSettings.xml

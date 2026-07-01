@@ -175,7 +175,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         bttStartScan.setOnClickListener((v) -> {
             if (!wifiManager.isWifiEnabled()) {
                 Toast.makeText(getContext(),
-                        "WiFi spento. Lo accendo..", Toast.LENGTH_LONG).show();
+                        "WiFi spento", Toast.LENGTH_LONG).show();
                 wifiManager.setWifiEnabled(true);
             }
 
