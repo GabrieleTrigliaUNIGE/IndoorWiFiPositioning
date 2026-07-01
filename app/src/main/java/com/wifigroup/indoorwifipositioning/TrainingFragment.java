@@ -209,7 +209,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // Risultato dalla cache — non salviamo nulla
         if (dBm == -998) {
             Toast.makeText(getContext(),
-                    "Scansione vecchia (cache). " + "Aspetta qualche secondo e riprova.",
+                    "Scansione vecchia (cache)\n riprova",
                     Toast.LENGTH_LONG).show();
             refreshUI();
             return;
