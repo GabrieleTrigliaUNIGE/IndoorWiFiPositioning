@@ -69,7 +69,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     // ── WiFi ──────────────────────────────────────────────────────────────────
     private WifiManager wifiManager   = null;
     private WiFiReceiver wiFiReceiver = null;
-
     private boolean onlyOneScan = false;
 
     // ── Dati: AP → (distanza → lista dBm) ────────────────────────────────────
@@ -161,14 +160,14 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         AdapterView.OnItemSelectedListener onChange = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-                aggiornaUI();
+                refreshUI();
             }
             @Override public void onNothingSelected(AdapterView<?> p) {}
         };
         spinnerAP.setOnItemSelectedListener(onChange);
         spinnerDistance.setOnItemSelectedListener(onChange);
 
-        aggiornaUI();   // prima visualizzazione
+        refreshUI();   // prima visualizzazione
     }
 
     private void setupButtons() {
@@ -189,7 +188,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             tvMeasureCount.setText("Scansione in corso…");
         });
 
-        bttExportCSV.setOnClickListener((v) -> esportaCSV());
+        bttExportCSV.setOnClickListener((v) -> CSVexport());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -210,9 +209,9 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // Risultato dalla cache — non salviamo nulla
         if (dBm == -998) {
             Toast.makeText(getContext(),
-                    "Scansione vecchia (cache). Aspetta qualche secondo e riprova.",
+                    "Scansione vecchia (cache). " + "Aspetta qualche secondo e riprova.",
                     Toast.LENGTH_LONG).show();
-            aggiornaUI();
+            refreshUI();
             return;
         }
 
@@ -223,48 +222,48 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             Toast.makeText(getContext(),
                     "\"" + ssid + "\" non trovato nella scansione",
                     Toast.LENGTH_SHORT).show();
-            aggiornaUI();
+            refreshUI();
             return;
         }
 
         String ap       = getSelectedAP();
-        int    distanza = getSelectedDistance();
-        int    required = REQUIRED.get(distanza);
-        int    done     = getMeasureCount(ap, distanza);
+        int    distance = getSelectedDistance();
+        int    required = REQUIRED.get(distance);
+        int    done     = getMeasureCount(ap, distance);
 
         if (done >= required) {
             Toast.makeText(getContext(),
                     "Misure già complete per questa combinazione!",
                     Toast.LENGTH_SHORT).show();
-            aggiornaUI();
+            refreshUI();
             return;
         }
 
         // Solo qui salviamo — scansione fresca + AP trovato + misure non complete
         measureData
                 .computeIfAbsent(ap,       k -> new HashMap<>())
-                .computeIfAbsent(distanza, k -> new ArrayList<>())
+                .computeIfAbsent(distance, k -> new ArrayList<>())
                 .add(dBm);
 
-        Log.i(TAG, "Salvato → AP=" + ap + " dist=" + distanza + "m dBm=" + dBm);
+        Log.i(TAG, "Salvato → AP=" + ap + " dist=" + distance + "m dBm=" + dBm);
         Toast.makeText(getContext(), "✓ dBm: " + dBm, Toast.LENGTH_SHORT).show();
 
-        aggiornaUI();
+        refreshUI();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     //  UI
     // ─────────────────────────────────────────────────────────────────────────
 
-    private void aggiornaUI() {
+    private void refreshUI() {
         String ap       = getSelectedAP();
-        int    distanza = getSelectedDistance();
-        int    done     = getMeasureCount(ap, distanza);
-        int    required = REQUIRED.get(distanza);
+        int    distance = getSelectedDistance();
+        int    done     = getMeasureCount(ap, distance);
+        int    required = REQUIRED.get(distance);
         boolean completo = done >= required;
 
         tvCurrentAP.setText("Access Point: " + ap);
-        tvCurrentDistance.setText("Distanza: " + distanza + " m");
+        tvCurrentDistance.setText("Distanza: " + distance + " m");
         tvMeasureCount.setText("Misure: " + done + " / " + required);
 
         bttStartScan.setEnabled(!completo);
@@ -295,7 +294,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     //  EXPORT CSV
     // ─────────────────────────────────────────────────────────────────────────
 
-    private void esportaCSV() {
+    private void CSVexport() {
         try {
             File dir  = requireContext().getExternalFilesDir(null);
             String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
@@ -310,10 +309,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
                     for (int dist : REQUIRED.keySet()) {
                         Map<Integer, List<Integer>> byDist = measureData.get(ap);
                         if (byDist == null) continue;
-                        List<Integer> valori = byDist.get(dist);
-                        if (valori == null) continue;
-                        for (int i = 0; i < valori.size(); i++) {
-                            pw.println(ap + "," + dist + "," + (i + 1) + "," + valori.get(i));
+                        List<Integer> values = byDist.get(dist);
+                        if (values == null) continue;
+                        for (int i = 0; i < values.size(); i++) {
+                            pw.println(ap + "," + dist + "," + (i + 1) + "," + values.get(i));
                         }
                     }
                 }
