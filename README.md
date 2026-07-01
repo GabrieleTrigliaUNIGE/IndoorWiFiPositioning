@@ -29,16 +29,19 @@ Unlike fingerprinting methods, this application relies on a mathematical propaga
 *(Note: Update this section if your approach relies on signal propagation formulas to compute distances from individual routers followed by trilateration).*
 
 ## Installation & Setup
-1. Clone this repository to your local machine:
+1. Clone this repository to your local machine (via https):
    ```bash
-   git clone [https://github.com/your-username/repo-name.git](https://github.com/your-username/repo-name.git)
+   git clone https://github.com/GabrieleTrigliaUNIGE/IndoorWiFiPositioning/
+2. Clone this repository to your local machine (via ssh):
+   ```bash
+   git clone git@github.com:GabrieleTrigliaUNIGE/IndoorWiFiPositioning/
 
 ## Contributors
-This project was co-authored and developed by a team of 5 students:
+This project was co-authored and developed by a team of 4 students:
 * **[Gabriele Triglia]**  - [GitHub Profile](https://github.com/GabrieleTrigliaUNIGE)
 * **[Alessio Marrazzo]**  - [GitHub Profile](https://github.com/AlessioMarrazzo)
-* **[Loris Costanzo]**    - [GitHub Profile](https://github.com/username2)
-* **[Celeste Basso]**     - [GitHub Profile](https://github.com/username3)
+* **[Loris Costanzo]**    - [GitHub Profile](https://github.com/lorisscosta)
+* **[Celeste Basso]**     - [GitHub Profile](https://github.com/CeleBasso)
 
 ## License
 This project is distributed under the GNU General Public License v3.0 (GPL-3.0). See the [LICENSE](LICENSE) file for more information.
