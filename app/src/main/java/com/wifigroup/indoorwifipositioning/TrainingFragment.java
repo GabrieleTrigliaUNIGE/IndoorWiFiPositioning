@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -122,7 +123,14 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        requireActivity().unregisterReceiver(wiFiReceiver);
+
+        try {
+            if (wiFiReceiver != null) {
+                requireActivity().unregisterReceiver(wiFiReceiver);
+            }
+        } catch (Exception e) {
+            Log.i("WIFI_RECEIVER", "Il ricevitore era già scollegato, ignoro l'errore.");
+        }
     }
 
     private void initViews(View view) {
@@ -296,7 +304,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
     private void CSVexport() {
         try {
-            File dir  = requireContext().getExternalFilesDir(null);
+            File dir  = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
                     .format(new Date());
             File file = new File(dir, "misure_wifi_" + ts + ".csv");
@@ -324,7 +332,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
                     Toast.LENGTH_LONG).show();
 
         } catch (IOException e) {
-            Log.e(TAG, "Errore CSV: " + e.getMessage());
+            Log.i(TAG, "Errore CSV: " + e.getMessage());
             Toast.makeText(getContext(),
                     "Errore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
