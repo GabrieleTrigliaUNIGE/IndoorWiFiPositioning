@@ -69,13 +69,31 @@ public class CsvDataProcessor extends Thread {
             logThread.join();
             polyThread.join();
 
+            // VERIFICA DELLE TABELLE FINALI ───
+            Log.i(TAG, "TABELLA LOG-DISTANZA");
+            for (Map.Entry<String, double[]> entry : LogMap.entrySet()) {
+                double[] parametri = entry.getValue();
+                // parametri[0] = RSSI0, parametri[1] = n
+                Log.i(TAG, String.format("AP: %s | RSSI_0: %.2f | n: %.3f",
+                        entry.getKey(), parametri[0], parametri[1]));
+            }
+
+            Log.i(TAG, "-----------------------------------------------");
+            Log.i(TAG, "TABELLA POLINOMIALE");
+            for (Map.Entry<String, double[]> entry : PolyMap.entrySet()) {
+                double[] parametri = entry.getValue();
+                // parametri[0] = A, parametri[1] = B, parametri[2] = C
+                Log.i(TAG, String.format("AP: %s | d = (%.4f)*R^2 + (%.4f)*R + (%.2f)",
+                        entry.getKey(), parametri[0], parametri[1], parametri[2]));
+            }
+
             if(listener != null){
                 listener.onProcessingDone(LogMap, PolyMap);
             }
 
             Log.i(TAG, "Calcolo parallelo terminato! Passo le due tabelle al Fragment.");
 
-            // RESTITUISCO LE TUE TABELLE
+            // RESTITUISCO LE TABELLE
             if (listener != null) {
                 listener.onProcessingDone(LogMap, PolyMap);
             }
