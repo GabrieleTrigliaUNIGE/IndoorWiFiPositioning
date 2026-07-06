@@ -192,7 +192,14 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             tvMeasureCount.setText("Scanning...");
         });
 
-        bttExportCSV.setOnClickListener((v) -> CSVexport());
+        bttExportCSV.setOnClickListener((v) -> {
+            com.wifigroup.indoorwifipositioning.misc.CsvExporter.exportToDownloads(
+                    requireContext(),
+                    ACCESS_POINTS,
+                    REQUIRED,
+                    measureData
+            );
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -294,43 +301,4 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         return list == null ? 0 : list.size();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  EXPORT CSV
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private void CSVexport() {
-        try {
-            File dir  = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-                    .format(new Date());
-            File file = new File(dir, "misure_wifi_" + ts + ".csv");
-
-            try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-
-                pw.println("AP,Distanza_m,Misura_n,dBm");
-
-                for (String ap : ACCESS_POINTS) {
-                    for (int dist : REQUIRED.keySet()) {
-                        Map<Integer, List<Integer>> byDist = measureData.get(ap);
-                        if (byDist == null) continue;
-                        List<Integer> values = byDist.get(dist);
-                        if (values == null) continue;
-                        for (int i = 0; i < values.size(); i++) {
-                            pw.println(ap + "," + dist + "," + (i + 1) + "," + values.get(i));
-                        }
-                    }
-                }
-            }
-
-            Log.i(TAG, "CSV Saved: " + file.getAbsolutePath());
-            Toast.makeText(getContext(),
-                    "CSV Saved:\n" + file.getAbsolutePath(),
-                    Toast.LENGTH_LONG).show();
-
-        } catch (IOException e) {
-            Log.i(TAG, "Error CSV: " + e.getMessage());
-            Toast.makeText(getContext(),
-                    "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
 }

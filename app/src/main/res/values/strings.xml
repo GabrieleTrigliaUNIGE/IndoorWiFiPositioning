@@ -9,7 +9,7 @@
     <string name="Log">Log distance</string>
     <string name="Indoor">APP WiFi Indoor</string>
     <string name="MeasureNumber">Measure number: 0 / </string>
-    <string name="EsportaCSV">Esporta CSV </string>
-    <string name="AvviaScansione">Avvio della scansione</string>
+    <string name="EsportaCSV">Export CSV </string>
+    <string name="AvviaScansione">Start scanning</string>
 
 </resources>

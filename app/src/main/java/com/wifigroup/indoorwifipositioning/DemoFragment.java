@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,11 +15,12 @@ import androidx.fragment.app.Fragment;
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 import com.wifigroup.indoorwifipositioning.misc.CsvReader;
-import com.wifigroup.indoorwifipositioning.processing.CsvToMean;
 
 import java.util.List;
 
 public class DemoFragment extends Fragment implements IWiFiScanCompleted {
+
+    private final String TAG = "DemoFragment";
 
     private TextView tvPolynomial = null;
 
@@ -30,7 +30,6 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted {
 
     private WiFiReceiver wiFiReceiver = null;
 
-    private final String TAG = "DemoFragment";
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,7 +51,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted {
 
         initViews(view);
 
-        Log.i(TAG, "Avvio fase di calibrazione pre-posizionamento...");
+        Log.i(TAG, "Avvio demo");
 
         // Chiama il CsvReader per leggere il file dalla cartella assets
         List<String> dataRaw = CsvReader.readCsvFromAssets(requireContext(), "MISURE_AP_TOT.csv");

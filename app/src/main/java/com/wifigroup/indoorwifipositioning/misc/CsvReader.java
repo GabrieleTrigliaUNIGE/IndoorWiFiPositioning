@@ -11,10 +11,6 @@ import java.util.List;
 public class CsvReader {
     private static final String TAG = "CsvReader";
 
-    /**
-     * Legge un file CSV dalla cartella assets e restituisce una lista di stringhe (una per riga).
-     * Salta in automatico la riga di intestazione.
-     */
     public static List<String> readCsvFromAssets(Context context, String fileName) {
         List<String> rowCsv = new ArrayList<>();
 
@@ -32,22 +28,16 @@ public class CsvReader {
             }
             Log.i(TAG, "File caricato correttamente dagli assets. Righe lette: " + rowCsv.size());
 
-            // -------------------------------------------------------------------------
-            // INIZIO LOG DI VERIFICA (Stampa il contenuto esatto della lista appena creata)
-            // -------------------------------------------------------------------------
-            Log.d("VERIFICA_DATI", "--- INIZIO LETTURA CSV: " + fileName + " ---");
-            Log.d("VERIFICA_DATI", "Totale righe salvate nella lista: " + rowCsv.size());
+            Log.i("VERIFICA_DATI", "--- INIZIO LETTURA CSV: " + fileName + " ---");
+            Log.i("VERIFICA_DATI", "Totale righe salvate nella lista: " + rowCsv.size());
 
             // Scorre tutta la lista dall'inizio (indice 0) alla fine
             for (int i = 0; i < rowCsv.size(); i++) {
                 // Stampa la posizione e il contenuto esatto
-                Log.d("VERIFICA_DATI", "Indice " + i + " -> " + rowCsv.get(i));
+                Log.i("VERIFICA_DATI", "Indice " + i + " -> " + rowCsv.get(i));
             }
 
-            Log.d("VERIFICA_DATI", "--- FINE LETTURA CSV ---");
-            // -------------------------------------------------------------------------
-            // FINE LOG DI VERIFICA
-            // -------------------------------------------------------------------------
+            Log.i("VERIFICA_DATI", "--- FINE LETTURA CSV ---");
 
         } catch (Exception e) {
             Log.i(TAG, "Errore durante la lettura del file negli assets: " + e.getMessage());
