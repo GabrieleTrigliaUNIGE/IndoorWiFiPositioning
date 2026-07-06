@@ -40,7 +40,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
     private final String TAG = "TrainingFragment";
 
-    // ── Numero misure richieste per distanza ──────────────────────────────────
+    // ── Number requested measures per distance ──────────────────────────────────
     private static final LinkedHashMap<Integer, Integer> REQUIRED = new LinkedHashMap<>();
 
     static {
@@ -72,11 +72,8 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     private WiFiReceiver wiFiReceiver = null;
     private boolean onlyOneScan = false;
 
-    // ── Dati: AP → (distanza → lista dBm) ────────────────────────────────────
-    //  CONTROLLLAAAAAAA
+    // ── Dati: AP → (distance → list dBm) ────────────────────────────────────
     private final Map<String, Map<Integer, List<Integer>>> measureData = new HashMap<>();
-
-    //  CONTROLLLAAAAAAA
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -119,7 +116,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         super.onStop();
     }
 
-    // CoNTROLLA SE NECESSARIO
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -129,7 +125,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
                 requireActivity().unregisterReceiver(wiFiReceiver);
             }
         } catch (Exception e) {
-            Log.i("WIFI_RECEIVER", "Il ricevitore era già scollegato, ignoro l'errore.");
+            Log.i("WIFI_RECEIVER", "Receiver already disconnected, ignoring error.");
         }
     }
 
@@ -175,7 +171,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         spinnerAP.setOnItemSelectedListener(onChange);
         spinnerDistance.setOnItemSelectedListener(onChange);
 
-        refreshUI();   // prima visualizzazione
+        refreshUI();
     }
 
     private void setupButtons() {
@@ -183,7 +179,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         bttStartScan.setOnClickListener((v) -> {
             if (!wifiManager.isWifiEnabled()) {
                 Toast.makeText(getContext(),
-                        "WiFi spento", Toast.LENGTH_LONG).show();
+                        "WiFi OFF", Toast.LENGTH_LONG).show();
                 wifiManager.setWifiEnabled(true);
             }
 
@@ -192,8 +188,8 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
             onlyOneScan = true;
             wifiManager.startScan();
-            Log.i(TAG, "Scan avviata per: " + getSelectedAP());
-            tvMeasureCount.setText("Scansione in corso…");
+            Log.i(TAG, "Scan started for: " + getSelectedAP());
+            tvMeasureCount.setText("Scanning...");
         });
 
         bttExportCSV.setOnClickListener((v) -> CSVexport());
@@ -209,7 +205,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // Scansione automatica di Android/altre app: la scartiamo
         if (!onlyOneScan) {
             Toast.makeText(getContext(),
-                    "Scansione automatica di Android",
+                    "Automatic Android Scan",
                     Toast.LENGTH_SHORT).show();
             return;
         }
@@ -217,7 +213,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // Risultato dalla cache — non salviamo nulla
         if (dBm == -998) {
             Toast.makeText(getContext(),
-                    "Scansione vecchia (cache)\n riprova",
+                    "Old scan (cache)\n retry",
                     Toast.LENGTH_LONG).show();
             refreshUI();
             return;
@@ -228,7 +224,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // AP non trovato nella scansione fresca
         if (dBm == -999) {
             Toast.makeText(getContext(),
-                    "\"" + ssid + "\" non trovato nella scansione",
+                    "\"" + ssid + "\" not found in scan",
                     Toast.LENGTH_SHORT).show();
             refreshUI();
             return;
@@ -241,7 +237,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
         if (done >= required) {
             Toast.makeText(getContext(),
-                    "Misure già complete per questa combinazione!",
+                    "Measurements already completed for this distance!",
                     Toast.LENGTH_SHORT).show();
             refreshUI();
             return;
@@ -253,7 +249,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
                 .computeIfAbsent(distance, k -> new ArrayList<>())
                 .add(dBm);
 
-        Log.i(TAG, "Salvato → AP=" + ap + " dist=" + distance + "m dBm=" + dBm);
+        Log.i(TAG, "Saved → AP=" + ap + " dist=" + distance + "m dBm=" + dBm);
         Toast.makeText(getContext(), "✓ dBm: " + dBm, Toast.LENGTH_SHORT).show();
 
         refreshUI();
@@ -271,11 +267,11 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         boolean completo = done >= required;
 
         tvCurrentAP.setText("Access Point: " + ap);
-        tvCurrentDistance.setText("Distanza: " + distance + " m");
-        tvMeasureCount.setText("Misure: " + done + " / " + required);
+        tvCurrentDistance.setText("Distance: " + distance + " m");
+        tvMeasureCount.setText("Measures: " + done + " / " + required);
 
         bttStartScan.setEnabled(!completo);
-        bttStartScan.setText(completo ? "✓ Completato" : "Avvia scansione");
+        bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -326,15 +322,15 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
                 }
             }
 
-            Log.i(TAG, "CSV salvato: " + file.getAbsolutePath());
+            Log.i(TAG, "CSV Saved: " + file.getAbsolutePath());
             Toast.makeText(getContext(),
-                    "CSV salvato:\n" + file.getAbsolutePath(),
+                    "CSV Saved:\n" + file.getAbsolutePath(),
                     Toast.LENGTH_LONG).show();
 
         } catch (IOException e) {
-            Log.i(TAG, "Errore CSV: " + e.getMessage());
+            Log.i(TAG, "Error CSV: " + e.getMessage());
             Toast.makeText(getContext(),
-                    "Errore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }
