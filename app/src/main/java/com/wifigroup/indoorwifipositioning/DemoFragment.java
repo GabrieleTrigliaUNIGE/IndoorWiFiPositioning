@@ -7,18 +7,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 import com.wifigroup.indoorwifipositioning.misc.CsvReader;
+import com.wifigroup.indoorwifipositioning.processing.CsvDataProcessor;
 
 import java.util.List;
+import java.util.Map;
 
-public class DemoFragment extends Fragment implements IWiFiScanCompleted {
+public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnProcessingCompleted {
 
     private final String TAG = "DemoFragment";
 
@@ -30,6 +34,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted {
 
     private WiFiReceiver wiFiReceiver = null;
 
+    private Map<String, double[]> logarithmicMap = null;
+    private Map<String, double[]> polynomialMap = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,21 +63,21 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted {
         List<String> dataRaw = CsvReader.readCsvFromAssets(requireContext(), "MISURE_AP_TOT.csv");
 
         // 2. Controlla se ha trovato i dati
-        /*
         if (!dataRaw.isEmpty()) {
 
             Toast.makeText(getContext(), "Dati caricati! Avvio calcolo medie...", Toast.LENGTH_SHORT).show();
 
             // 3. Passa la lista al tuo Thread per calcolare le medie
-            CsvToMean calcolatoreMedie = new CsvToMean(dataRaw);
-            calcolatoreMedie.start();
+            CsvDataProcessor meanProcessor = new CsvDataProcessor(dataRaw, this);
+            meanProcessor.start();
+
+            Toast.makeText(getContext(), "Calcolo media in corso...", Toast.LENGTH_SHORT).show();
 
         } else {
             // Se la lista è vuota, significa che il file non c'era o aveva un nome sbagliato
-            Toast.makeText(getContext(), "ERRORE: Impossibile caricare il CSV di calibrazione", Toast.LENGTH_LONG).show();
-            Log.e(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
+            Toast.makeText(getContext(), "ERRORE: Impossibile caricare il CSV", Toast.LENGTH_LONG).show();
+            Log.i(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
         }
-        */
     }
 
     @Override
@@ -98,7 +104,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted {
         }
     }
 
-    private void initViews(View view) {
+    private void initViews(@NonNull View view) {
         tvPolynomial      = view.findViewById(R.id.tvPolynomial);
         tvLog             = view.findViewById(R.id.tvLog);
         bttStartDemo      = view.findViewById(R.id.bttStartDemo);
@@ -107,6 +113,30 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted {
     // CONTROLLAAAAA
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
+        if(!isAdded() || getContext() == null) {
+            return;
+        }
+
+        if (logarithmicMap == null || polynomialMap == null) {
+            Log.i(TAG, "Scansione ricevuto, aspetto calibrazione");
+            return;
+        }
+
+        //TODO: logica per multilaterazione
+    }
+
+    @Override
+    public void onProcessingDone(Map<String, double[]> logModels, Map<String, double[]> polyModels) {
+        this.logarithmicMap = logModels;
+        this.polynomialMap = polyModels;
+
+        if(isAdded() && getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Toast.makeText(getContext(), "Calcolo completato", Toast.LENGTH_LONG).show();
+                bttStartDemo.setEnabled(true);
+                Log.i(TAG, "Tabelle salvate in memoria");
+            });
+        }
 
     }
 }

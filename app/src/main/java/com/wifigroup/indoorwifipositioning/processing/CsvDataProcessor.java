@@ -2,7 +2,7 @@ package com.wifigroup.indoorwifipositioning.processing;
 
 import android.util.Log;
 
-import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted; // IMPORTIAMO LA TUA INTERFACCIA
+import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted;
 
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
@@ -69,6 +69,10 @@ public class CsvDataProcessor extends Thread {
             logThread.join();
             polyThread.join();
 
+            if(listener != null){
+                listener.onProcessingDone(LogMap, PolyMap);
+            }
+
             Log.i(TAG, "Calcolo parallelo terminato! Passo le due tabelle al Fragment.");
 
             // RESTITUISCO LE TUE TABELLE
@@ -78,10 +82,8 @@ public class CsvDataProcessor extends Thread {
 
         } catch (InterruptedException e) {
             Log.i(TAG, "Sincronizzazione thread interrotta: " + e.getMessage());
-            if (listener != null) listener.onError("Calcolo interrotto.");
         } catch (Exception e) {
             Log.i(TAG, "Errore generale: " + e.getMessage());
-            if (listener != null) listener.onError(e.getMessage());
         }
     }
 
