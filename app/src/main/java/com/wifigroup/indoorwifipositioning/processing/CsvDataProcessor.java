@@ -2,6 +2,7 @@ package com.wifigroup.indoorwifipositioning.processing;
 
 import android.util.Log;
 
+import com.wifigroup.indoorwifipositioning.AP.AccessPoint;
 import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted;
 
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
@@ -69,34 +70,36 @@ public class CsvDataProcessor extends Thread {
             logThread.join();
             polyThread.join();
 
-            // VERIFICA DELLE TABELLE FINALI ───
-            Log.i(TAG, "TABELLA LOG-DISTANZA");
-            for (Map.Entry<String, double[]> entry : LogMap.entrySet()) {
-                double[] parametri = entry.getValue();
-                // parametri[0] = RSSI0, parametri[1] = n
-                Log.i(TAG, String.format("AP: %s | RSSI_0: %.2f | n: %.3f",
-                        entry.getKey(), parametri[0], parametri[1]));
-            }
+            Map<String, AccessPoint> finalModels = new HashMap<>();
 
-            Log.i(TAG, "-----------------------------------------------");
-            Log.i(TAG, "TABELLA POLINOMIALE");
-            for (Map.Entry<String, double[]> entry : PolyMap.entrySet()) {
-                double[] parametri = entry.getValue();
-                // parametri[0] = A, parametri[1] = B, parametri[2] = C
-                Log.i(TAG, String.format("AP: %s | d = (%.4f)*R^2 + (%.4f)*R + (%.2f)",
-                        entry.getKey(), parametri[0], parametri[1], parametri[2]));
+            for (String apName : meanData.keySet()) {
+                AccessPoint ap = new AccessPoint(apName);
+
+                double[] logData = LogMap.get(apName);
+
+                if (logData != null) {
+                    ap.p_0 = logData[0];
+                    ap.n = logData[1];
+                    Log.i(TAG, String.format("AP: %s | p_0: %.2f | n: %.3f", apName, ap.p_0, ap.n));
+                }
+
+                double[] polyData = PolyMap.get(apName);
+
+                if (polyData != null) {
+                    ap.coeffA = polyData[0];
+                    ap.coeffB = polyData[1];
+                    ap.coeffC = polyData[2];
+                    Log.i(TAG, String.format("AP: %s | Poly: (%.4f)*R^2 + (%.4f)*R + (%.2f)", apName, ap.coeffA, ap.coeffB, ap.coeffC));
+                }
+
+                finalModels.put(apName, ap);
             }
 
             if(listener != null){
-                listener.onProcessingDone(LogMap, PolyMap);
+                listener.onProcessingDone(finalModels);
             }
 
-            Log.i(TAG, "Calcolo parallelo terminato! Passo le due tabelle al Fragment.");
-
-            // RESTITUISCO LE TABELLE
-            if (listener != null) {
-                listener.onProcessingDone(LogMap, PolyMap);
-            }
+            Log.i(TAG, "Calcolo parallelo terminato");
 
         } catch (InterruptedException e) {
             Log.i(TAG, "Sincronizzazione thread interrotta: " + e.getMessage());

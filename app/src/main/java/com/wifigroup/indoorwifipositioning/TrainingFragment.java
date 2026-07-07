@@ -92,16 +92,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.i(TAG, "Avvio training");
 
         initViews(view);
-
-        wifiManager = (WifiManager) requireActivity()
-                .getSystemService(Context.WIFI_SERVICE);
-        wiFiReceiver = new WiFiReceiver(wifiManager, this);
-        requireActivity().registerReceiver(
-                wiFiReceiver,
-                new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-
+        setupWiFiReceiver();
         setupSpinners();
         setupButtons();
     }
@@ -202,9 +196,15 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  INTERFACCIA  WiFiScanCompleted
-    // ─────────────────────────────────────────────────────────────────────────
+    private void setupWiFiReceiver(){
+        wifiManager = (WifiManager) requireActivity()
+                .getSystemService(Context.WIFI_SERVICE);
+        wiFiReceiver = new WiFiReceiver(wifiManager, this);
+        requireActivity().registerReceiver(
+                wiFiReceiver,
+                new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    }
+
 
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
