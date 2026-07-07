@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,7 +40,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
     private final String TAG = "TrainingFragment";
 
-    // ── Numero misure richieste per distanza ──────────────────────────────────
+    // ── Number requested measures per distance ──────────────────────────────────
     private static final LinkedHashMap<Integer, Integer> REQUIRED = new LinkedHashMap<>();
 
     static {
@@ -71,11 +72,8 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     private WiFiReceiver wiFiReceiver = null;
     private boolean onlyOneScan = false;
 
-    // ── Dati: AP → (distanza → lista dBm) ────────────────────────────────────
-    //  CONTROLLLAAAAAAA
+    // ── Dati: AP → (distance → list dBm) ────────────────────────────────────
     private final Map<String, Map<Integer, List<Integer>>> measureData = new HashMap<>();
-
-    //  CONTROLLLAAAAAAA
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -94,16 +92,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.i(TAG, "Avvio training");
 
         initViews(view);
-
-        wifiManager = (WifiManager) requireActivity()
-                .getSystemService(Context.WIFI_SERVICE);
-        wiFiReceiver = new WiFiReceiver(wifiManager, this);
-        requireActivity().registerReceiver(
-                wiFiReceiver,
-                new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-
+        setupWiFiReceiver();
         setupSpinners();
         setupButtons();
     }
@@ -118,11 +110,17 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         super.onStop();
     }
 
-    // CoNTROLLA SE NECESSARIO
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        requireActivity().unregisterReceiver(wiFiReceiver);
+
+        try {
+            if (wiFiReceiver != null) {
+                requireActivity().unregisterReceiver(wiFiReceiver);
+            }
+        } catch (Exception e) {
+            Log.i("WIFI_RECEIVER", "Receiver already disconnected, ignoring error.");
+        }
     }
 
     private void initViews(View view) {
@@ -167,7 +165,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         spinnerAP.setOnItemSelectedListener(onChange);
         spinnerDistance.setOnItemSelectedListener(onChange);
 
-        refreshUI();   // prima visualizzazione
+        refreshUI();
     }
 
     private void setupButtons() {
@@ -175,7 +173,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         bttStartScan.setOnClickListener((v) -> {
             if (!wifiManager.isWifiEnabled()) {
                 Toast.makeText(getContext(),
-                        "WiFi spento", Toast.LENGTH_LONG).show();
+                        "WiFi OFF", Toast.LENGTH_LONG).show();
                 wifiManager.setWifiEnabled(true);
             }
 
@@ -184,16 +182,29 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
             onlyOneScan = true;
             wifiManager.startScan();
-            Log.i(TAG, "Scan avviata per: " + getSelectedAP());
-            tvMeasureCount.setText("Scansione in corso…");
+            Log.i(TAG, "Scan started for: " + getSelectedAP());
+            tvMeasureCount.setText("Scanning...");
         });
 
-        bttExportCSV.setOnClickListener((v) -> CSVexport());
+        bttExportCSV.setOnClickListener((v) -> {
+            com.wifigroup.indoorwifipositioning.misc.CsvExporter.exportToDownloads(
+                    requireContext(),
+                    ACCESS_POINTS,
+                    REQUIRED,
+                    measureData
+            );
+        });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  INTERFACCIA  WiFiScanCompleted
-    // ─────────────────────────────────────────────────────────────────────────
+    private void setupWiFiReceiver(){
+        wifiManager = (WifiManager) requireActivity()
+                .getSystemService(Context.WIFI_SERVICE);
+        wiFiReceiver = new WiFiReceiver(wifiManager, this);
+        requireActivity().registerReceiver(
+                wiFiReceiver,
+                new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    }
+
 
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
@@ -201,7 +212,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // Scansione automatica di Android/altre app: la scartiamo
         if (!onlyOneScan) {
             Toast.makeText(getContext(),
-                    "Scansione automatica di Android",
+                    "Automatic Android Scan",
                     Toast.LENGTH_SHORT).show();
             return;
         }
@@ -209,7 +220,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // Risultato dalla cache — non salviamo nulla
         if (dBm == -998) {
             Toast.makeText(getContext(),
-                    "Scansione vecchia (cache)\n riprova",
+                    "Old scan (cache)\n retry",
                     Toast.LENGTH_LONG).show();
             refreshUI();
             return;
@@ -220,7 +231,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         // AP non trovato nella scansione fresca
         if (dBm == -999) {
             Toast.makeText(getContext(),
-                    "\"" + ssid + "\" non trovato nella scansione",
+                    "\"" + ssid + "\" not found in scan",
                     Toast.LENGTH_SHORT).show();
             refreshUI();
             return;
@@ -233,7 +244,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
         if (done >= required) {
             Toast.makeText(getContext(),
-                    "Misure già complete per questa combinazione!",
+                    "Measurements already completed for this distance!",
                     Toast.LENGTH_SHORT).show();
             refreshUI();
             return;
@@ -245,7 +256,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
                 .computeIfAbsent(distance, k -> new ArrayList<>())
                 .add(dBm);
 
-        Log.i(TAG, "Salvato → AP=" + ap + " dist=" + distance + "m dBm=" + dBm);
+        Log.i(TAG, "Saved → AP=" + ap + " dist=" + distance + "m dBm=" + dBm);
         Toast.makeText(getContext(), "✓ dBm: " + dBm, Toast.LENGTH_SHORT).show();
 
         refreshUI();
@@ -263,11 +274,11 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         boolean completo = done >= required;
 
         tvCurrentAP.setText("Access Point: " + ap);
-        tvCurrentDistance.setText("Distanza: " + distance + " m");
-        tvMeasureCount.setText("Misure: " + done + " / " + required);
+        tvCurrentDistance.setText("Distance: " + distance + " m");
+        tvMeasureCount.setText("Measures: " + done + " / " + required);
 
         bttStartScan.setEnabled(!completo);
-        bttStartScan.setText(completo ? "✓ Completato" : "Avvia scansione");
+        bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -290,43 +301,4 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         return list == null ? 0 : list.size();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  EXPORT CSV
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private void CSVexport() {
-        try {
-            File dir  = requireContext().getExternalFilesDir(null);
-            String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-                    .format(new Date());
-            File file = new File(dir, "misure_wifi_" + ts + ".csv");
-
-            try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-
-                pw.println("AP,Distanza_m,Misura_n,dBm");
-
-                for (String ap : ACCESS_POINTS) {
-                    for (int dist : REQUIRED.keySet()) {
-                        Map<Integer, List<Integer>> byDist = measureData.get(ap);
-                        if (byDist == null) continue;
-                        List<Integer> values = byDist.get(dist);
-                        if (values == null) continue;
-                        for (int i = 0; i < values.size(); i++) {
-                            pw.println(ap + "," + dist + "," + (i + 1) + "," + values.get(i));
-                        }
-                    }
-                }
-            }
-
-            Log.i(TAG, "CSV salvato: " + file.getAbsolutePath());
-            Toast.makeText(getContext(),
-                    "CSV salvato:\n" + file.getAbsolutePath(),
-                    Toast.LENGTH_LONG).show();
-
-        } catch (IOException e) {
-            Log.e(TAG, "Errore CSV: " + e.getMessage());
-            Toast.makeText(getContext(),
-                    "Errore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
 }

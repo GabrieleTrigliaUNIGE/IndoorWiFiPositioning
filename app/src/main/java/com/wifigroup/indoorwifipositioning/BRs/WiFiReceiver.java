@@ -39,26 +39,37 @@ import java.util.List;
 
         // Se Android ha restituito dati dalla cache, rifiutiamo la misura
         if (!scanFresh) {
-            Log.w(TAG, "Risultati dalla cache — misura scartata");
+            Log.i(TAG, "Risultati dalla cache — misura scartata");
             wiFiScanCompleted.onWifiScanCompleted(targetSSID, -998);  // -998 = codice "cache"
             return;
         }
 
         List<ScanResult> wifiScan = wifiManager.getScanResults();
 
-        int dBm = -999;
-        for (ScanResult result : wifiScan) {
-            if (targetSSID != null && targetSSID.equals(result.SSID)) {
-                dBm = result.level;
-                Log.i(TAG, "Trovato " + targetSSID + " → " + dBm + " dBm");
-                break;
+        if (targetSSID != null) {
+
+            int dBm = -999;
+            for (ScanResult result : wifiScan) {
+                if (targetSSID != null && targetSSID.equals(result.SSID)) {
+                    dBm = result.level;
+                    Log.i(TAG, "Trovato " + targetSSID + " → " + dBm + " dBm");
+                    break;
+                }
             }
-        }
 
-        if (dBm == -999) {
-            Log.w(TAG, "SSID \"" + targetSSID + "\" non trovato nella scansione");
-        }
+            if (dBm == -999) {
+                Log.i(TAG, "SSID \"" + targetSSID + "\" non trovato nella scansione");
+            }
 
-        wiFiScanCompleted.onWifiScanCompleted(targetSSID, dBm);
+            wiFiScanCompleted.onWifiScanCompleted(targetSSID, dBm);
+        } else {
+            // MODO DEMO (Rete da pesca): Nessun target impostato, passiamo tutto!
+            for (ScanResult result : wifiScan) {
+                // Inviamo ogni singolo Access Point trovato al DemoFragment
+                wiFiScanCompleted.onWifiScanCompleted(result.SSID, result.level);
+            }
+            Log.i(TAG, "Inviati " + wifiScan.size() + " risultati grezzi al DemoFragment.");
+
+        }
     }
 }

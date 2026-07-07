@@ -1,9 +1,11 @@
 package com.wifigroup.indoorwifipositioning;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,10 +28,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bttTraining.setOnClickListener( v -> {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragmentContainer, new TrainingFragment())
-                    .addToBackStack(null)
-                    .commit();
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+            if (!(currentFragment instanceof TrainingFragment)) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragmentContainer, new TrainingFragment())
+                        .commit();
+                Log.i(TAG, "Cliccato Training");
+            }
+        });
+
+        bttDemo.setOnClickListener( v -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+            if (!(currentFragment instanceof DemoFragment)) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragmentContainer, new DemoFragment())
+                        .commit();
+
+                Log.i(TAG, "Cliccato Demo");
+            }
         });
     }
 
