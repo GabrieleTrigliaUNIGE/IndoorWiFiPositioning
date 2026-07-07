@@ -11,6 +11,8 @@ import java.util.List;
 public class CsvReader {
     private static final String TAG = "CsvReader";
 
+    // TODO: FARE IL BOOLEAN PER IL SALTO DELLA RIGA; PRIMA VOLEVAMO TESTARE SE FUNZIONASSE COSI
+
     public static List<String> readCsvFromAssets(Context context, String fileName) {
         List<String> rowCsv = new ArrayList<>();
 

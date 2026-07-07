@@ -186,23 +186,26 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     @Override
     public void onProcessingDone(Map<String, AccessPoint> calibratedAps) {
 
-        // TODO: METTERE LE CORDINATE IN UN FILE??
-        // INSERISCI QUI LE COORDINATE REALI (IN METRI) DELLA TUA STANZA!
-        if (calibratedAps.containsKey("AP1")) {
-            calibratedAps.get("AP1").x = 0.0;
-            calibratedAps.get("AP1").y = 0.0;
-        }
-        if (calibratedAps.containsKey("AP2")) {
-            calibratedAps.get("AP2").x = 5.0;
-            calibratedAps.get("AP2").y = 0.0;
-        }
-        if (calibratedAps.containsKey("AP3")) {
-            calibratedAps.get("AP3").x = 5.0;
-            calibratedAps.get("AP3").y = 5.0;
-        }
-        if (calibratedAps.containsKey("AP4")) {
-            calibratedAps.get("AP4").x = 0.0;
-            calibratedAps.get("AP4").y = 5.0;
+        // TODO: UTILIZZARE LA FUNZIONE READCSV PER LEGGERE IL FILE DELLE COORDINATE?
+        List<String> coordinateLines = CsvReader.readCsvFromAssets(requireContext(), "AP_COORDINATES.csv");
+
+        // 2. Assegniamo dinamicamente le coordinate agli oggetti
+        for (String line : coordinateLines) {
+            String[] parts = line.split(",");
+            if (parts.length == 3) {
+                String ssid = parts[0];
+                double x = Double.parseDouble(parts[1]);
+                double y = Double.parseDouble(parts[2]);
+
+                // Peschiamo l'oggetto dalla mappa creata dal Thread
+                AccessPoint ap = calibratedAps.get(ssid);
+
+                if (ap != null) {
+                    ap.x = x;
+                    ap.y = y;
+                    Log.i(TAG, "Configurato " + ssid + " alla posizione X: " + x + ", Y: " + y);
+                }
+            }
         }
 
         // Salviamo la stanza configurata
