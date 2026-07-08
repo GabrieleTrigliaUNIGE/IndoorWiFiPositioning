@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 
 import com.wifigroup.indoorwifipositioning.AP.AccessPoint;
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.interfaces.ICsvReadCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 import com.wifigroup.indoorwifipositioning.misc.CsvReader;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnProcessingCompleted {
+public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnProcessingCompleted, ICsvReadCompleted {
 
     private final String TAG = "DemoFragment";
 
@@ -49,6 +50,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     private boolean isScanRequested = false;
 
     private Runnable calculationRunnable = null;
+
+    private Map<String, AccessPoint> tempCalibratedAps = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -131,20 +134,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     }
 
     private void readCsv(){
-        List<String> dataRaw = CsvReader.readCsvFromAssets(requireContext(), "MISURE_AP_TOT.csv");
-
-        if (!dataRaw.isEmpty()) {
-
-            Toast.makeText(getContext(), "Data loaded! Starting mean computing...", Toast.LENGTH_SHORT).show();
-
-            CsvDataProcessor meanProcessor = new CsvDataProcessor(dataRaw, this);
-            meanProcessor.start();
-
-        } else {
-            Toast.makeText(getContext(), "ERROR: CSV loading failed!", Toast.LENGTH_LONG).show();
-            Log.i(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
-        }
-
+        new CsvReader(requireContext(), "MISURE_AP_TOT.csv", this).start();
     }
 
     @Override
@@ -207,34 +197,70 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     @Override
     public void onProcessingDone(Map<String, AccessPoint> calibratedAps) {
 
-        // TODO: UTILIZZARE LA FUNZIONE READCSV PER LEGGERE IL FILE DELLE COORDINATE?
-        List<String> coordinateLines = CsvReader.readCsvFromAssets(requireContext(), "AP_COORDINATES.csv");
+        this.tempCalibratedAps = calibratedAps;
 
-        for (String line : coordinateLines) {
-            String[] parts = line.split(",");
-            if (parts.length == 3) {
-                String ssid = parts[0];
-                double x = Double.parseDouble(parts[1]);
-                double y = Double.parseDouble(parts[2]);
+        Log.i(TAG, "Modelli matematici calcolati. Avvio lettura coordinate...");
+        new CsvReader(requireContext(), "AP_COORDINATES.csv", this).start();
+    }
 
-                AccessPoint ap = calibratedAps.get(ssid);
+    @Override
+    public void onCsvReadDone(List<String> dataRaw, String fileName) {
 
-                if (ap != null) {
-                    ap.x = x;
-                    ap.y = y;
-                    Log.i(TAG, "Configurato " + ssid + " alla posizione X: " + x + ", Y: " + y);
+        if (dataRaw.isEmpty()) {
+            if(isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), "ERROR: empty CSV or not found (" + fileName + ")", Toast.LENGTH_LONG).show()
+                );
+            }
+            Log.i(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
+            return;
+        }
+
+        // CASO 1: Abbiamo letto il file delle misure iniziali
+        if (fileName.equals("MISURE_AP_TOT.csv")) {
+            if(isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), "Data loaded! Starting mean computing...", Toast.LENGTH_SHORT).show()
+                );
+            }
+            CsvDataProcessor meanProcessor = new CsvDataProcessor(dataRaw, this);
+            meanProcessor.start();
+
+        }
+        // CASO 2: Abbiamo letto il file delle coordinate (Arriva dopo onProcessingDone)
+        else if (fileName.equals("AP_COORDINATES.csv")) {
+            // Uniamo le coordinate lette con i modelli matematici parcheggiati
+            for (String line : dataRaw) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    String ssid = parts[0];
+                    double x = Double.parseDouble(parts[1]);
+                    double y = Double.parseDouble(parts[2]);
+
+                    if (tempCalibratedAps != null) {
+                        AccessPoint ap = tempCalibratedAps.get(ssid);
+
+                        if (ap != null) {
+                            ap.x = x;
+                            ap.y = y;
+                            Log.i(TAG, "Configurato " + ssid + " alla posizione X: " + x + ", Y: " + y);
+                        }
+                    }
                 }
             }
+
+            // Salvataggio finale nella mappa ufficiale della stanza
+            this.roomMap = tempCalibratedAps;
+
+            if(isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    Toast.makeText(getContext(), "Calculation completed", Toast.LENGTH_LONG).show();
+                    bttStartDemo.setEnabled(true);
+                    Log.i(TAG, "Tabelle salvate in memoria");
+                });
+            }
+
         }
 
-        this.roomMap = calibratedAps;
-
-        if(isAdded() && getActivity() != null) {
-            getActivity().runOnUiThread(() -> {
-                Toast.makeText(getContext(), "Calculation completed", Toast.LENGTH_LONG).show();
-                bttStartDemo.setEnabled(true);
-                Log.i(TAG, "Tabelle salvate in memoria");
-            });
-        }
     }
 }
