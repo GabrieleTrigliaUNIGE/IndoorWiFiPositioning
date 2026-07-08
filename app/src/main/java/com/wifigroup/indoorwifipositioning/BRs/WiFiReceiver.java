@@ -18,7 +18,7 @@ import java.util.List;
 
     private WifiManager wifiManager = null;
     private IWiFiScanCompleted wiFiScanCompleted = null;
-    private String targetSSID = null;           // SSID da cercare nella scansione
+    private String targetSSID = null;
 
     public WiFiReceiver(WifiManager wifiManager, IWiFiScanCompleted wiFiScanCompleted) {
         this.wifiManager = wifiManager;
