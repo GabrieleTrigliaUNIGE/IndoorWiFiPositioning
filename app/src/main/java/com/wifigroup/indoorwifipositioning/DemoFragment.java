@@ -16,8 +16,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
 import com.wifigroup.indoorwifipositioning.AP.AccessPoint;
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.graphics.GraphManager;
 import com.wifigroup.indoorwifipositioning.interfaces.ICsvReadCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
@@ -47,11 +50,14 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
     private Map<String, Integer> liveScanBuffer = new ConcurrentHashMap<>();
 
+    private Map<String, AccessPoint> tempCalibratedAps = null;
+
     private boolean isScanRequested = false;
 
     private Runnable calculationRunnable = null;
 
-    private Map<String, AccessPoint> tempCalibratedAps = null;
+    private GraphManager graphManager = null;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -75,6 +81,10 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         initViews(view);
         setupWiFiReceiver();
         setupStartButton();
+
+        // TODO: il bottone false non posso metterlo nella initViews
+        // Disabilitiamo il bottone finché i modelli non sono pronti
+        bttStartDemo.setEnabled(false);
         readCsv();
     }
 
@@ -109,12 +119,15 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         tvPolynomial      = view.findViewById(R.id.tvPolynomial);
         tvLog             = view.findViewById(R.id.tvLog);
         bttStartDemo      = view.findViewById(R.id.bttStartDemo);
+
+        GraphView graphMap = view.findViewById(R.id.graphMap);
+        graphManager = new GraphManager(graphMap);
     }
 
     private void setupStartButton() {
-        bttStartDemo.setEnabled(false);
-
         bttStartDemo.setOnClickListener(v -> {
+
+            bttStartDemo.setEnabled(false);
             isScanRequested = true;
             liveScanBuffer.clear();
             wifiManager.startScan();
@@ -157,6 +170,11 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             Log.i(TAG, "Ricevuto live: " + ssid + " -> " + dBm + " dBm");
         }
 
+        // Cancella il calcolo in coda se arriva un nuovo Access Point
+        if (calculationRunnable != null && bttStartDemo != null) {
+            bttStartDemo.removeCallbacks(calculationRunnable);
+        }
+
         calculationRunnable = () -> {
 
             isScanRequested = false;
@@ -179,6 +197,12 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                         } else {
                             tvPolynomial.setText(getString(R.string.PolyErr));
                         }
+
+                        // Aggiorna mappa delegando al GraphManager
+                        graphManager.updatePositions(posLog, posPoly);
+
+                        // Sblocca il bottone a lavoro finito
+                        bttStartDemo.setEnabled(true);
                     });
                 }
             } else {
@@ -186,6 +210,9 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                     getActivity().runOnUiThread(() -> {
                         tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
                         tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
+
+                        // Sblocca il bottone anche in caso di errore
+                        bttStartDemo.setEnabled(true);
                     });
                 }
             }
@@ -229,6 +256,12 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         }
         // CASO 2: Abbiamo letto il file delle coordinate (Arriva dopo onProcessingDone)
         else if (fileName.equals("AP_COORDINATES.csv")) {
+
+            DataPoint[] apDataPoints = new DataPoint[dataRaw.size()];
+            int count = 0;
+            double maxX = 9.0;
+            double maxY = 10.0;
+
             // Uniamo le coordinate lette con i modelli matematici parcheggiati
             for (String line : dataRaw) {
                 String[] parts = line.split(",");
@@ -254,6 +287,13 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
             if(isAdded() && getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
+
+                    // Inviamo i punti validi al Manager Grafico
+                    DataPoint[] validPoints = new DataPoint[count];
+                    System.arraycopy(apDataPoints, 0, validPoints, 0, count);
+                    graphManager.drawRoomAndAPs(validPoints, maxX, maxY);
+                    Log.i(TAG, "Mappa aggiornata");
+
                     Toast.makeText(getContext(), "Calculation completed", Toast.LENGTH_LONG).show();
                     bttStartDemo.setEnabled(true);
                     Log.i(TAG, "Tabelle salvate in memoria");

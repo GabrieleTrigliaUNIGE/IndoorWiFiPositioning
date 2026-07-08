@@ -42,4 +42,10 @@
         android:text="@string/Log"
         android:textSize="@dimen/Text"
         android:textStyle="bold" />
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graphMap"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_marginTop="25dp" />
 </LinearLayout>
