@@ -29,7 +29,6 @@ public class CsvDataProcessor extends Thread {
         Log.i(TAG, "Avvio calcolo Medie dal CSV...");
 
         try {
-            // CALCOLO DELLE MEDIE
             Map<String, Map<Integer, Double>> meanData = calculateMeans(csvLines);
 
             Map<String, double[]> LogMap = new HashMap<>();

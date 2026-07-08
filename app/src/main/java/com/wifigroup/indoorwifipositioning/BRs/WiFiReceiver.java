@@ -25,7 +25,6 @@ public class WiFiReceiver extends BroadcastReceiver {
         this.wiFiScanCompleted = wiFiScanCompleted;
     }
 
-    /** Imposta quale SSID cercare prima di chiamare wifiManager.startScan() */
     public void setTargetSSID(String ssid) {
         this.targetSSID = ssid;
     }
@@ -37,10 +36,9 @@ public class WiFiReceiver extends BroadcastReceiver {
 
         Log.i(TAG, "Scansione fresca: " + scanFresh);
 
-        // Se Android ha restituito dati dalla cache, rifiutiamo la misura
         if (!scanFresh) {
             Log.i(TAG, "Risultati dalla cache — misura scartata");
-            wiFiScanCompleted.onWifiScanCompleted(targetSSID, -998);  // -998 = codice "cache"
+            wiFiScanCompleted.onWifiScanCompleted(targetSSID, -998);
             return;
         }
 

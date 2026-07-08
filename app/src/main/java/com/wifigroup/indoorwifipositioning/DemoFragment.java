@@ -194,14 +194,13 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             } else {
                 if (isAdded() && getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        tvLog.setText("Log: AP insufficienti (" + liveScanBuffer.size() + "/3)");
-                        tvPolynomial.setText("Poly: AP insufficienti (" + liveScanBuffer.size() + "/3)");
+                        tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
+                        tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
                     });
                 }
             }
         };
 
-        // Aspettiamo un attimo per dare tempo al WiFiReceiver di inviarci tutti gli AP del batch
         bttStartDemo.postDelayed(calculationRunnable, 250);
     }
 

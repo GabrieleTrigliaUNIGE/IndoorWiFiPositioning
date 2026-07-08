@@ -12,6 +12,7 @@ public class CsvReader {
     private static final String TAG = "CsvReader";
 
     // TODO: FARE IL BOOLEAN PER IL SALTO DELLA RIGA
+    // TODO: FARE INTERFACCIA ??
 
     public static List<String> readCsvFromAssets(Context context, String fileName) {
         List<String> rowCsv = new ArrayList<>();
