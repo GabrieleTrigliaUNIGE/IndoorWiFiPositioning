@@ -46,6 +46,10 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
     private Map<String, Integer> liveScanBuffer = new ConcurrentHashMap<>();
 
+    private boolean isScanRequested = false;
+
+    private Runnable calculationRunnable = null;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +89,10 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     public void onDestroyView() {
         super.onDestroyView();
 
+        if (calculationRunnable != null && bttStartDemo != null) {
+            bttStartDemo.removeCallbacks(calculationRunnable);
+        }
+
         try {
             if (wiFiReceiver != null) {
                 requireActivity().unregisterReceiver(wiFiReceiver);
@@ -104,9 +112,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         bttStartDemo.setEnabled(false);
 
         bttStartDemo.setOnClickListener(v -> {
-
+            isScanRequested = true;
             liveScanBuffer.clear();
-
             wifiManager.startScan();
 
             tvLog.setText("Log distance: Scansione in corso...");
@@ -152,6 +159,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             return;
         }
 
+        if (!isScanRequested) return;
+
         if (dBm == -999 || dBm == -998) return;
 
         if (roomMap.containsKey(ssid)) {
@@ -159,28 +168,43 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             Log.i(TAG, "Ricevuto live: " + ssid + " -> " + dBm + " dBm");
         }
 
-        if (liveScanBuffer.size() >= 3) {
+        calculationRunnable = () -> {
 
-            // Logica per multilaterazione
-            double[] posLog = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, true);
-            double[] posPoly = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, false);
+            isScanRequested = false;
 
-            if (isAdded() && getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    if (posLog != null) {
-                        tvLog.setText(String.format("Log distance\nX: %.2f m | Y: %.2f m", posLog[0], posLog[1]));
-                    } else {
-                        tvLog.setText("Log distance: Errore di convergenza");
-                    }
+            if (liveScanBuffer.size() >= 3) {
 
-                    if (posPoly != null) {
-                        tvPolynomial.setText(String.format("Polynomial approximation\nX: %.2f m | Y: %.2f m", posPoly[0], posPoly[1]));
-                    } else {
-                        tvPolynomial.setText("Polynomial approximation: Errore di convergenza");
-                    }
-                });
+                // Logica per multilaterazione
+                double[] posLog = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, true);
+                double[] posPoly = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, false);
+
+                if (isAdded() && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (posLog != null) {
+                            tvLog.setText(String.format("Log distance\nX: %.2f m | Y: %.2f m", posLog[0], posLog[1]));
+                        } else {
+                            tvLog.setText("Log distance: Errore di convergenza");
+                        }
+
+                        if (posPoly != null) {
+                            tvPolynomial.setText(String.format("Polynomial approximation\nX: %.2f m | Y: %.2f m", posPoly[0], posPoly[1]));
+                        } else {
+                            tvPolynomial.setText("Polynomial approximation: Errore di convergenza");
+                        }
+                    });
+                }
+            } else {
+                if (isAdded() && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        tvLog.setText("Log: AP insufficienti (" + liveScanBuffer.size() + "/3)");
+                        tvPolynomial.setText("Poly: AP insufficienti (" + liveScanBuffer.size() + "/3)");
+                    });
+                }
             }
-        }
+        };
+
+        // Aspettiamo un attimo per dare tempo al WiFiReceiver di inviarci tutti gli AP del batch
+        bttStartDemo.postDelayed(calculationRunnable, 250);
     }
 
     @Override
