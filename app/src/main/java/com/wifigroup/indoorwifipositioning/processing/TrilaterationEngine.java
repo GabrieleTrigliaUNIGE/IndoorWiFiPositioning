@@ -11,10 +11,37 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Provides utility methods to calculate the device's physical position using trilateration.
+ * <p>
+ * This engine utilizes the Levenberg-Marquardt algorithm to solve the non-linear
+ * least squares optimization problem. It converts real-time RSSI readings into physical
+ * distances based on either a logarithmic path loss model or a polynomial regression model,
+ * and calculates the intersection of the resulting circles to estimate the user's 2D location.
+ * </p>
+ *
+ * @author WiFiGroup
+ * @version 1.0.0
+ */
 public class TrilaterationEngine {
 
     private static final String TAG = "TrilaterationEngine";
 
+    /**
+     * Calculates the 2D coordinates of the device based on real-time Wi-Fi measurements.
+     * <p>
+     * The method requires at least 3 valid Access Points to perform the trilateration.
+     * Distances are estimated dynamically using the calibration coefficients stored in
+     * the provided {@link AccessPoint} objects.
+     * </p>
+     *
+     * @param liveRssi a map containing the current RSSI readings (in dBm) for each detected AP's SSID
+     * @param roomMap a map of known Access Points, containing their physical coordinates and calibration models
+     * @param isLogModel {@code true} to estimate distance using the logarithmic path loss model,
+     * {@code false} to use the second-degree polynomial regression model
+     * @return a {@code double} array containing the estimated [X, Y] coordinates,
+     * or {@code null} if the calculation fails or there are not enough valid APs
+     */
     public static double[] calculatePosition(
             Map<String, Integer> liveRssi,
             Map<String, AccessPoint> roomMap,

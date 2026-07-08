@@ -28,11 +28,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Manages the training phase of the indoor positioning system.
+ * <p>
+ * This fragment handles the collection of RSSI measurements at predefined
+ * distances from known Access Points. It provides a user interface to select
+ * the target AP and distance, tracks the number of required scans, and exports
+ * the collected data to a CSV file for calibration purposes.
+ * </p>
+ *
+ * @author WiFiGroup
+ * @version 1.0.0
+ */
 public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
     private final String TAG = "TrainingFragment";
-
-    // ── Number requested measures per distance ──────────────────────────────────
     private static final LinkedHashMap<Integer, Integer> REQUIRED = new LinkedHashMap<>();
 
     static {
@@ -64,20 +74,45 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
     private final Map<String, Map<Integer, List<Integer>>> measureData = new HashMap<>();
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param savedInstanceState If the fragment is being re-created from
+     * a previous saved state, this is the state.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to. The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return the fragment view
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView");
-
         return inflater.inflate(R.layout.training_fragments, container, false);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param view The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -89,16 +124,25 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         setupButtons();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStart() {
         super.onStart();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStop() {
         super.onStop();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -112,6 +156,11 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         }
     }
 
+    /**
+     * Initializes the fragment's UI components by finding views by their IDs.
+     *
+     * @param view the fragment's root view
+     */
     private void initViews(View view) {
         spinnerAP         = view.findViewById(R.id.spinnerAP);
         spinnerDistance   = view.findViewById(R.id.spinnerDistance);
@@ -122,6 +171,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         bttExportCSV      = view.findViewById(R.id.bttExportCSV);
     }
 
+    /**
+     * Configures the spinners for Access Point and distance selection,
+     * including their adapters and selection change listeners.
+     */
     private void setupSpinners() {
 
         // Spinner AP
@@ -155,6 +208,9 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         refreshUI();
     }
 
+    /**
+     * Configures the click listeners for the scanning and CSV export buttons.
+     */
     private void setupButtons() {
 
         bttStartScan.setOnClickListener((v) -> {
@@ -183,6 +239,9 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         });
     }
 
+    /**
+     * Initializes and registers the Wi-Fi broadcast receiver to listen for scan results.
+     */
     private void setupWiFiReceiver(){
         wifiManager = (WifiManager) requireActivity()
                 .getSystemService(Context.WIFI_SERVICE);
@@ -193,6 +252,12 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param ssid AP's SSID
+     * @param dBm AP's RSSI (Received Signal Strength Indicator)
+     */
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
 
@@ -245,6 +310,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         refreshUI();
     }
 
+    /**
+     * Updates the UI elements based on the currently selected AP and distance,
+     * including text views and the state of the scan button.
+     */
     private void refreshUI() {
         String ap       = getSelectedAP();
         int    distance = getSelectedDistance();
@@ -260,20 +329,37 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
     }
 
+    /**
+     * Retrieves the currently selected Access Point from the spinner.
+     *
+     * @return the SSID string of the selected AP
+     */
     private String getSelectedAP() {
         return ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
     }
 
+    /**
+     * Retrieves the currently selected distance from the spinner.
+     *
+     * @return the selected distance in meters
+     */
     private int getSelectedDistance() {
         int pos = spinnerDistance.getSelectedItemPosition();
         return new ArrayList<>(REQUIRED.keySet()).get(pos);
     }
 
+    /**
+     * Calculates the number of valid measurements already collected for a specific
+     * Access Point at a specific distance.
+     *
+     * @param ap the AP's SSID
+     * @param distance the measurement distance from the AP
+     * @return the number of collected measurements
+     */
     private int getMeasureCount(String ap, int distance) {
         Map<Integer, List<Integer>> byDist = measureData.get(ap);
         if (byDist == null) return 0;
         List<Integer> list = byDist.get(distance);
         return list == null ? 0 : list.size();
     }
-
 }

@@ -7,6 +7,18 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+/**
+ * The main entry point of the application.
+ * <p>
+ * This activity serves as the host container for the application's fragments.
+ * It manages the navigation between the {@link TrainingFragment} (for data collection)
+ * and the {@link DemoFragment} (for real-time positioning demonstration) using
+ * button interactions to replace the displayed fragment.
+ * </p>
+ *
+ * @author WiFiGroup
+ * @version 1.0.0
+ */
 public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "MainActivity";
@@ -14,6 +26,17 @@ public class MainActivity extends AppCompatActivity {
     private Button bttTraining;
     private Button bttDemo;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Initializes the layout, sets up the initial fragment (TrainingFragment),
+     * and configures the click listeners for switching between the application's modes.
+     * </p>
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     * previously being shut down then this Bundle contains the data it most
+     * recently supplied in {@link #onSaveInstanceState}. <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Initializes the activity's UI components by finding views by their IDs.
+     */
     private void initViews() {
         bttTraining = findViewById(R.id.bttTraining);
         bttDemo = findViewById(R.id.bttDemo);

@@ -28,6 +28,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Represents the main user interface for the indoor Wi-Fi positioning demonstration.
+ * <p>
+ * This fragment manages the UI components, handles real-time Wi-Fi scanning operations,
+ * reads calibration data from CSV assets, and orchestrates the trilateration engine
+ * to compute the device's coordinates based on RSSI measurements.
+ * </p>
+ *
+ * @author WiFiGroup
+ * @version 1.0.0
+ */
 public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnProcessingCompleted {
 
     private final String TAG = "DemoFragment";
@@ -50,20 +61,45 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
     private Runnable calculationRunnable = null;
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param savedInstanceState If the fragment is being re-created from
+     * a previous saved state, this is the state.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to. The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return the fragment's view
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView");
-
         return inflater.inflate(R.layout.demo_fragments, container, false);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param view The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -75,16 +111,25 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         readCsv();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStart() {
         super.onStart();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStop() {
         super.onStop();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -102,12 +147,19 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         }
     }
 
+    /**
+     * Initializes the fragment's UI components.
+     * * @param view the fragment's root view
+     */
     private void initViews(@NonNull View view) {
         tvPolynomial      = view.findViewById(R.id.tvPolynomial);
         tvLog             = view.findViewById(R.id.tvLog);
         bttStartDemo      = view.findViewById(R.id.bttStartDemo);
     }
 
+    /**
+     * Sets up the start button listener and its initial state.
+     */
     private void setupStartButton() {
         bttStartDemo.setEnabled(false);
 
@@ -122,6 +174,9 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         });
     }
 
+    /**
+     * Initializes and registers the Wi-Fi broadcast receiver to listen for scan results.
+     */
     private void setupWiFiReceiver() {
         wifiManager = (WifiManager) requireActivity().getSystemService(Context.WIFI_SERVICE);
         wiFiReceiver = new WiFiReceiver(wifiManager, this);
@@ -130,6 +185,9 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
     }
 
+    /**
+     * Reads the Access Point calibration data from the CSV file located in the assets folder.
+     */
     private void readCsv(){
         List<String> dataRaw = CsvReader.readCsvFromAssets(requireContext(), "MISURE_AP_TOT.csv");
 
@@ -144,9 +202,14 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             Toast.makeText(getContext(), "ERROR: CSV loading failed!", Toast.LENGTH_LONG).show();
             Log.i(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
         }
-
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param ssid AP's SSID
+     * @param dBm AP's RSSI
+     */
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
         if(!isAdded() || getContext() == null) {
@@ -204,6 +267,10 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         bttStartDemo.postDelayed(calculationRunnable, 250);
     }
 
+    /**
+     * {@inheritDoc}
+     * * @param calibratedAps the map of the APs configured with their physical coordinates
+     */
     @Override
     public void onProcessingDone(Map<String, AccessPoint> calibratedAps) {
 

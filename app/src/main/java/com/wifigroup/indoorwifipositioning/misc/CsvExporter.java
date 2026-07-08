@@ -16,10 +16,36 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Provides utility methods to export collected Wi-Fi measurements to a CSV file.
+ * <p>
+ * This class handles the formatting and file I/O operations required to save
+ * the training phase data into the device's public Downloads directory. The exported
+ * CSV file can then be used for external analysis or calibration of the positioning models.
+ * </p>
+ *
+ * @author WiFiGroup
+ * @version 1.0.0
+ */
 public class CsvExporter {
 
     private static final String TAG = "CsvExporter";
 
+    /**
+     * Exports the recorded RSSI measurements to a CSV file in the device's Downloads folder.
+     * <p>
+     * The generated file is named using a timestamp format (e.g., "misure_wifi_YYYYMMDD_HHMMSS.csv")
+     * and contains a standard header followed by the data rows formatted as:
+     * {@code AP, Distanza_m, Misura_n, dBm}. A toast notification is displayed to the user
+     * upon success or failure.
+     * </p>
+     *
+     * @param context the application context used to display UI toast notifications
+     * @param accessPoints an array containing the SSIDs of the target Access Points
+     * @param requiredMap a map defining the required distances for calibration
+     * @param measureData the structured data collection containing the recorded RSSI values,
+     * mapped by AP SSID and then by distance
+     */
     public static void exportToDownloads(
             Context context,
             String[] accessPoints,

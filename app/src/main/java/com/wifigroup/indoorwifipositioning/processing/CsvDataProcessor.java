@@ -14,16 +14,46 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Processes CSV data containing RSSI measurements to calibrate Access Points.
+ * <p>
+ * This thread computes the mean RSSI values for each distance per Access Point.
+ * It then performs concurrent calculations using two different mathematical approaches:
+ * a logarithmic path loss model and a second-degree polynomial regression.
+ * The computed coefficients are used to configure the {@link AccessPoint} objects,
+ * which are subsequently passed back to the UI via the {@link IOnProcessingCompleted} callback.
+ * </p>
+ *
+ * @author WiFiGroup
+ * @version 1.0.0
+ */
 public class CsvDataProcessor extends Thread {
+
     private static final String TAG = "CsvDataProcessor";
+
     private final List<String> csvLines;
+
     private final IOnProcessingCompleted listener;
 
+    /**
+     * Constructs a new CsvDataProcessor.
+     *
+     * @param csvLines a list of raw data strings read from the CSV file
+     * @param listener the callback interface to notify upon completion
+     */
     public CsvDataProcessor(List<String> csvLines, IOnProcessingCompleted listener) {
         this.csvLines = csvLines;
         this.listener = listener;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Executes the data processing pipeline in a background thread. It calculates
+     * the mean RSSI values, spawns two parallel threads to compute the logarithmic
+     * and polynomial models, and finally notifies the listener with the calibrated data.
+     * </p>
+     */
     @Override
     public void run() {
         Log.i(TAG, "Avvio calcolo Medie dal CSV...");
@@ -106,6 +136,12 @@ public class CsvDataProcessor extends Thread {
         }
     }
 
+    /**
+     * Parses the raw CSV lines and calculates the average RSSI for each distance per Access Point.
+     *
+     * @param lines the list of raw comma-separated strings to be processed
+     * @return a map associating each Access Point SSID with a map of distances and their average RSSI
+     */
     private Map<String, Map<Integer, Double>> calculateMeans(List<String> lines) {
         Map<String, Map<Integer, List<Integer>>> grouped = new HashMap<>();
         for (String line : lines) {
