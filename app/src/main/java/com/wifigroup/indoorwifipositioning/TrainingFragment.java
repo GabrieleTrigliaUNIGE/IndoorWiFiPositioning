@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,17 +22,10 @@ import androidx.fragment.app.Fragment;
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
@@ -53,7 +45,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         REQUIRED.put(7, 15);
     }
 
-    // ── I 4 Access Point (sostituisci con i tuoi SSID reali) ─────────────────
     private static final String[] ACCESS_POINTS = {
             "AP1", "AP2", "AP3", "AP4"
     };
@@ -67,12 +58,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     private Button bttStartScan = null;
     private Button bttExportCSV = null;
 
-    // ── WiFi ──────────────────────────────────────────────────────────────────
     private WifiManager wifiManager   = null;
     private WiFiReceiver wiFiReceiver = null;
     private boolean onlyOneScan = false;
 
-    // ── Dati: AP → (distance → list dBm) ────────────────────────────────────
     private final Map<String, Map<Integer, List<Integer>>> measureData = new HashMap<>();
 
     @Override
@@ -143,7 +132,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         apAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerAP.setAdapter(apAdapter);
 
-        // Spinner distanze  →  "1 m", "2 m", …
         List<String> distLabels = new ArrayList<>();
         for (int d : REQUIRED.keySet()) distLabels.add(d + " m");
 
@@ -154,7 +142,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         distAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDistance.setAdapter(distAdapter);
 
-        // Aggiorna le TextView ogni volta che l'utente cambia selezione
         AdapterView.OnItemSelectedListener onChange = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
@@ -183,7 +170,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             onlyOneScan = true;
             wifiManager.startScan();
             Log.i(TAG, "Scan started for: " + getSelectedAP());
-            tvMeasureCount.setText("Scanning...");
+            tvMeasureCount.setText(R.string.Scanning);
         });
 
         bttExportCSV.setOnClickListener((v) -> {
@@ -209,7 +196,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
 
-        // Scansione automatica di Android/altre app: la scartiamo
         if (!onlyOneScan) {
             Toast.makeText(getContext(),
                     "Automatic Android Scan",
@@ -217,7 +203,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             return;
         }
 
-        // Risultato dalla cache — non salviamo nulla
         if (dBm == -998) {
             Toast.makeText(getContext(),
                     "Old scan (cache)\n retry",
@@ -228,7 +213,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
         onlyOneScan = false;
 
-        // AP non trovato nella scansione fresca
         if (dBm == -999) {
             Toast.makeText(getContext(),
                     "\"" + ssid + "\" not found in scan",
@@ -250,7 +234,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
             return;
         }
 
-        // Solo qui salviamo — scansione fresca + AP trovato + misure non complete
         measureData
                 .computeIfAbsent(ap,       k -> new HashMap<>())
                 .computeIfAbsent(distance, k -> new ArrayList<>())
@@ -262,10 +245,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         refreshUI();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  UI
-    // ─────────────────────────────────────────────────────────────────────────
-
     private void refreshUI() {
         String ap       = getSelectedAP();
         int    distance = getSelectedDistance();
@@ -273,17 +252,13 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         int    required = REQUIRED.get(distance);
         boolean completo = done >= required;
 
-        tvCurrentAP.setText("Access Point: " + ap);
-        tvCurrentDistance.setText("Distance: " + distance + " m");
-        tvMeasureCount.setText("Measures: " + done + " / " + required);
+        tvCurrentAP.setText(getString(R.string.AccessPointPH, ap));
+        tvCurrentDistance.setText(getString(R.string.DistancePH, distance));
+        tvMeasureCount.setText(getString(R.string.MeasuresPH,done,required));
 
         bttStartScan.setEnabled(!completo);
         bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  HELPERS
-    // ─────────────────────────────────────────────────────────────────────────
 
     private String getSelectedAP() {
         return ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
@@ -294,10 +269,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         return new ArrayList<>(REQUIRED.keySet()).get(pos);
     }
 
-    private int getMeasureCount(String ap, int distanza) {
+    private int getMeasureCount(String ap, int distance) {
         Map<Integer, List<Integer>> byDist = measureData.get(ap);
         if (byDist == null) return 0;
-        List<Integer> list = byDist.get(distanza);
+        List<Integer> list = byDist.get(distance);
         return list == null ? 0 : list.size();
     }
 

@@ -29,7 +29,6 @@ public class CsvDataProcessor extends Thread {
         Log.i(TAG, "Avvio calcolo Medie dal CSV...");
 
         try {
-            // CALCOLO DELLE MEDIE
             Map<String, Map<Integer, Double>> meanData = calculateMeans(csvLines);
 
             Map<String, double[]> LogMap = new HashMap<>();
@@ -59,7 +58,6 @@ public class CsvDataProcessor extends Thread {
                     PolynomialCurveFitter fitter = PolynomialCurveFitter.create(2);
                     double[] coeff = fitter.fit(points.toList());
 
-                    // Inserisce array di 3 valori riordinati: [A, B, C]
                     PolyMap.put(ap, new double[]{coeff[2], coeff[1], coeff[0]});
                 }
             });

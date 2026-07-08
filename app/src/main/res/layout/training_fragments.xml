@@ -56,13 +56,13 @@
         android:id="@+id/bttStartScan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/AvviaScansione"
+        android:text="@string/StartScan"
         android:layout_marginBottom="@dimen/Margin_main"/>
 
     <Button
         android:id="@+id/bttExportCSV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/EsportaCSV"/>
+        android:text="@string/ExportCSV"/>
 
 </LinearLayout>
