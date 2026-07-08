@@ -9,7 +9,17 @@
     <string name="Log">Log distance</string>
     <string name="Indoor">APP WiFi Indoor</string>
     <string name="MeasureNumber">Measure number: 0 / </string>
-    <string name="EsportaCSV">Export CSV </string>
-    <string name="AvviaScansione">Start scanning</string>
-
+    <string name="ExportCSV">Export CSV </string>
+    <string name="StartScan">Start scanning</string>
+    <string name="Scanning">Scanning…</string>
+    <string name="AccessPointPH">Access Point: %1$s</string>
+    <string name="DistancePH">Distance: %d m</string>
+    <string name="MeasuresPH">Measures: %d / %d</string>
+    <string name="LogResults">Log distance\nX: %.2f m | Y: %.2f m</string>
+    <string name="LogErr">Log distance: Convergence error</string>
+    <string name="PolyResults">Polynomial approximation\nX: %.2f m | Y: %.2f m</string>
+    <string name="PolyErr">Poly distance: Convergence error</string>
+    <string name="SpacedColon">: </string>
+    <string name="PolynomialPH">Polynomial approximation:\n%s</string>
+    <string name="LogPH">Log distance:\n%s</string>
 </resources>

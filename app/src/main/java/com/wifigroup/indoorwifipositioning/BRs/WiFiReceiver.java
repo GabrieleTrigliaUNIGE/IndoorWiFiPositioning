@@ -12,7 +12,7 @@ import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 
 import java.util.List;
 
- public class WiFiReceiver extends BroadcastReceiver {
+public class WiFiReceiver extends BroadcastReceiver {
 
     private final String TAG = "WiFiReceiver";
 
@@ -63,13 +63,10 @@ import java.util.List;
 
             wiFiScanCompleted.onWifiScanCompleted(targetSSID, dBm);
         } else {
-            // MODO DEMO (Rete da pesca): Nessun target impostato, passiamo tutto!
             for (ScanResult result : wifiScan) {
-                // Inviamo ogni singolo Access Point trovato al DemoFragment
                 wiFiScanCompleted.onWifiScanCompleted(result.SSID, result.level);
             }
             Log.i(TAG, "Inviati " + wifiScan.size() + " risultati grezzi al DemoFragment.");
-
         }
     }
 }

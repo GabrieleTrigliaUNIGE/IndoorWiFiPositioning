@@ -11,20 +11,18 @@ import java.util.List;
 public class CsvReader {
     private static final String TAG = "CsvReader";
 
-    // TODO: FARE IL BOOLEAN PER IL SALTO DELLA RIGA; PRIMA VOLEVAMO TESTARE SE FUNZIONASSE COSI
+    // TODO: FARE IL BOOLEAN PER IL SALTO DELLA RIGA
 
     public static List<String> readCsvFromAssets(Context context, String fileName) {
         List<String> rowCsv = new ArrayList<>();
 
-        // Usiamo context.getAssets().open() per dire ad Android di andare a cercare nella cartella assets
+        // context.getAssets().open() per dire ad Android di cercare nel giusto path
         try (BufferedReader br = new BufferedReader(new InputStreamReader(context.getAssets().open(fileName)))) {
             String line;
             Log.i(TAG, "Caricamento file negli assets...");
 
-            // Legge e scarta la prima riga (l'header: AP,Distanza_m,Misura_n,dBm)
             br.readLine();
 
-            // Legge i dati veri riga per riga e li aggiunge alla lista
             while ((line = br.readLine()) != null) {
                 rowCsv.add(line);
             }
@@ -33,9 +31,7 @@ public class CsvReader {
             Log.i("VERIFICA_DATI", "--- INIZIO LETTURA CSV: " + fileName + " ---");
             Log.i("VERIFICA_DATI", "Totale righe salvate nella lista: " + rowCsv.size());
 
-            // Scorre tutta la lista dall'inizio (indice 0) alla fine
             for (int i = 0; i < rowCsv.size(); i++) {
-                // Stampa la posizione e il contenuto esatto
                 Log.i("VERIFICA_DATI", "Indice " + i + " -> " + rowCsv.get(i));
             }
 

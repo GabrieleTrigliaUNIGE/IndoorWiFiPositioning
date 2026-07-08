@@ -31,7 +31,6 @@ public class TrilaterationEngine {
                 double distance = 0;
 
                 if (isLogModel) {
-                    // Aggiornato con ap.p_0
                     distance = Math.pow(10.0, (ap.p_0 - currentRssi) / (10.0 * ap.n));
                 } else {
                     distance = (ap.coeffA * Math.pow(currentRssi, 2)) + (ap.coeffB * currentRssi) + ap.coeffC;

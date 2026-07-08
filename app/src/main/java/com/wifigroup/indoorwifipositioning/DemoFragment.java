@@ -116,9 +116,9 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             liveScanBuffer.clear();
             wifiManager.startScan();
 
-            tvLog.setText("Log distance: Scansione in corso...");
-            tvPolynomial.setText("Polynomial approximation: Scansione in corso...");
-            Toast.makeText(getContext(), "Scansione Wi-Fi avviata...", Toast.LENGTH_SHORT).show();
+            tvLog.setText(getString(R.string.LogPH, getString(R.string.Scanning)));
+            tvPolynomial.setText(getString(R.string.PolynomialPH, getString(R.string.Scanning)));
+            Toast.makeText(getContext(), "Wi-Fi scanning started...", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -131,18 +131,17 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     }
 
     private void readCsv(){
-        // Chiama il CsvReader per leggere il file dalla cartella assets
         List<String> dataRaw = CsvReader.readCsvFromAssets(requireContext(), "MISURE_AP_TOT.csv");
 
         if (!dataRaw.isEmpty()) {
 
-            Toast.makeText(getContext(), "Dati caricati! Avvio calcolo medie...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Data loaded! Starting mean computing...", Toast.LENGTH_SHORT).show();
 
             CsvDataProcessor meanProcessor = new CsvDataProcessor(dataRaw, this);
             meanProcessor.start();
 
         } else {
-            Toast.makeText(getContext(), "ERRORE: Impossibile caricare il CSV", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "ERROR: CSV loading failed!", Toast.LENGTH_LONG).show();
             Log.i(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
         }
 
@@ -174,22 +173,21 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
             if (liveScanBuffer.size() >= 3) {
 
-                // Logica per multilaterazione
                 double[] posLog = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, true);
                 double[] posPoly = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, false);
 
                 if (isAdded() && getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         if (posLog != null) {
-                            tvLog.setText(String.format("Log distance\nX: %.2f m | Y: %.2f m", posLog[0], posLog[1]));
+                            tvLog.setText(getString(R.string.LogResults, posLog[0], posLog[1]));
                         } else {
-                            tvLog.setText("Log distance: Errore di convergenza");
+                            tvLog.setText(getString(R.string.LogErr));
                         }
 
                         if (posPoly != null) {
-                            tvPolynomial.setText(String.format("Polynomial approximation\nX: %.2f m | Y: %.2f m", posPoly[0], posPoly[1]));
+                            tvPolynomial.setText(getString(R.string.PolyResults, posPoly[0], posPoly[1]));
                         } else {
-                            tvPolynomial.setText("Polynomial approximation: Errore di convergenza");
+                            tvPolynomial.setText(getString(R.string.PolyErr));
                         }
                     });
                 }
@@ -213,7 +211,6 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         // TODO: UTILIZZARE LA FUNZIONE READCSV PER LEGGERE IL FILE DELLE COORDINATE?
         List<String> coordinateLines = CsvReader.readCsvFromAssets(requireContext(), "AP_COORDINATES.csv");
 
-        // 2. Assegniamo dinamicamente le coordinate agli oggetti
         for (String line : coordinateLines) {
             String[] parts = line.split(",");
             if (parts.length == 3) {
@@ -221,7 +218,6 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                 double x = Double.parseDouble(parts[1]);
                 double y = Double.parseDouble(parts[2]);
 
-                // Peschiamo l'oggetto dalla mappa creata dal Thread
                 AccessPoint ap = calibratedAps.get(ssid);
 
                 if (ap != null) {
@@ -232,12 +228,11 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             }
         }
 
-        // Salviamo la stanza configurata
         this.roomMap = calibratedAps;
 
         if(isAdded() && getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                Toast.makeText(getContext(), "Calcolo completato", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Calculation completed", Toast.LENGTH_LONG).show();
                 bttStartDemo.setEnabled(true);
                 Log.i(TAG, "Tabelle salvate in memoria");
             });
