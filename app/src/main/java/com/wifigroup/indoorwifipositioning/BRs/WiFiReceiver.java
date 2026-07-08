@@ -12,13 +12,13 @@ import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 
 import java.util.List;
 
- public class WiFiReceiver extends BroadcastReceiver {
+public class WiFiReceiver extends BroadcastReceiver {
 
     private final String TAG = "WiFiReceiver";
 
     private WifiManager wifiManager = null;
     private IWiFiScanCompleted wiFiScanCompleted = null;
-    private String targetSSID = null;           // SSID da cercare nella scansione
+    private String targetSSID = null;
 
     public WiFiReceiver(WifiManager wifiManager, IWiFiScanCompleted wiFiScanCompleted) {
         this.wifiManager = wifiManager;
@@ -63,13 +63,10 @@ import java.util.List;
 
             wiFiScanCompleted.onWifiScanCompleted(targetSSID, dBm);
         } else {
-            // MODO DEMO (Rete da pesca): Nessun target impostato, passiamo tutto!
             for (ScanResult result : wifiScan) {
-                // Inviamo ogni singolo Access Point trovato al DemoFragment
                 wiFiScanCompleted.onWifiScanCompleted(result.SSID, result.level);
             }
             Log.i(TAG, "Inviati " + wifiScan.size() + " risultati grezzi al DemoFragment.");
-
         }
     }
 }

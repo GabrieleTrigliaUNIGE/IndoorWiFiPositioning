@@ -59,7 +59,6 @@ public class CsvDataProcessor extends Thread {
                     PolynomialCurveFitter fitter = PolynomialCurveFitter.create(2);
                     double[] coeff = fitter.fit(points.toList());
 
-                    // Inserisce array di 3 valori riordinati: [A, B, C]
                     PolyMap.put(ap, new double[]{coeff[2], coeff[1], coeff[0]});
                 }
             });
