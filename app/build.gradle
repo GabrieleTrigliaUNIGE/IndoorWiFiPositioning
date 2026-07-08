@@ -42,3 +42,33 @@ dependencies {
     androidTestImplementation libs.espresso.core
     androidTestImplementation libs.ext.junit
 }
+
+afterEvaluate {
+    task javadoc(type: Javadoc) {
+        description = "Generates Javadoc for the project."
+        
+        // Usiamo fileTree per assicurarci che Javadoc veda i singoli file
+        source = android.sourceSets.main.java.srcDirs.collect { fileTree(dir: it, include: '**/*.java') }
+        
+        // Include l'SDK Android
+        classpath += project.files(androidComponents.sdkComponents.bootClasspath)
+        
+        // Risoluzione delle dipendenze AndroidX/Material (estrae i JAR dagli AAR)
+        if (configurations.hasProperty('debugCompileClasspath')) {
+            classpath += configurations.debugCompileClasspath.incoming.artifactView {
+                attributes {
+                    attribute(Attribute.of("artifactType", String), "android-classes-jar")
+                }
+            }.files
+        }
+
+        destinationDir = file("${project.buildDir}/docs/javadoc")
+        failOnError false
+
+        options {
+            encoding = "UTF-8"
+            charSet = "UTF-8"
+            addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
