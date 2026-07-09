@@ -1,6 +1,7 @@
 package com.wifigroup.indoorwifipositioning;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -20,7 +21,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.hardware.HardwareHandler;
+import com.wifigroup.indoorwifipositioning.interfaces.ICsvExportCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
+import com.wifigroup.indoorwifipositioning.misc.CsvExporter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
+public class TrainingFragment extends Fragment implements IWiFiScanCompleted, ICsvExportCompleted {
 
     private final String TAG = "TrainingFragment";
 
@@ -124,7 +128,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
     private void setupSpinners() {
 
-        // Spinner AP
         ArrayAdapter<String> apAdapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
@@ -158,10 +161,9 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
     private void setupButtons() {
 
         bttStartScan.setOnClickListener((v) -> {
-            if (!wifiManager.isWifiEnabled()) {
-                Toast.makeText(getContext(),
-                        "WiFi OFF", Toast.LENGTH_LONG).show();
-                wifiManager.setWifiEnabled(true);
+
+            if (!HardwareHandler.isHardwareReady(requireContext(), wifiManager)) {
+                return;
             }
 
             // Dice al receiver quale SSID cercare
@@ -174,12 +176,15 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
         });
 
         bttExportCSV.setOnClickListener((v) -> {
-            com.wifigroup.indoorwifipositioning.misc.CsvExporter.exportToDownloads(
-                    requireContext(),
+            // Disabilitiamo il bottone per evitare salvataggi multipli
+            bttExportCSV.setEnabled(false);
+            Toast.makeText(getContext(), "Exporting...", Toast.LENGTH_SHORT).show();
+            new CsvExporter(
                     ACCESS_POINTS,
                     REQUIRED,
-                    measureData
-            );
+                    measureData,
+                    this
+            ).start();
         });
     }
 
@@ -192,6 +197,37 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
     }
 
+
+    private void refreshUI() {
+        String ap       = getSelectedAP();
+        int    distance = getSelectedDistance();
+        int    done     = getMeasureCount(ap, distance);
+        int    required = REQUIRED.get(distance);
+        boolean completo = done >= required;
+
+        tvCurrentAP.setText(getString(R.string.AccessPointPH, ap));
+        tvCurrentDistance.setText(getString(R.string.DistancePH, distance));
+        tvMeasureCount.setText(getString(R.string.MeasuresPH,done,required));
+
+        bttStartScan.setEnabled(!completo);
+        bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
+    }
+
+    private String getSelectedAP() {
+        return ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
+    }
+
+    private int getSelectedDistance() {
+        int pos = spinnerDistance.getSelectedItemPosition();
+        return new ArrayList<>(REQUIRED.keySet()).get(pos);
+    }
+
+    private int getMeasureCount(String ap, int distance) {
+        Map<Integer, List<Integer>> byDist = measureData.get(ap);
+        if (byDist == null) return 0;
+        List<Integer> list = byDist.get(distance);
+        return list == null ? 0 : list.size();
+    }
 
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
@@ -244,36 +280,18 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted {
 
         refreshUI();
     }
-
-    private void refreshUI() {
-        String ap       = getSelectedAP();
-        int    distance = getSelectedDistance();
-        int    done     = getMeasureCount(ap, distance);
-        int    required = REQUIRED.get(distance);
-        boolean completo = done >= required;
-
-        tvCurrentAP.setText(getString(R.string.AccessPointPH, ap));
-        tvCurrentDistance.setText(getString(R.string.DistancePH, distance));
-        tvMeasureCount.setText(getString(R.string.MeasuresPH,done,required));
-
-        bttStartScan.setEnabled(!completo);
-        bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
+    @Override
+    public void onExportDone(boolean isSuccess, String message) {
+        if(isAdded() && getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                if (isSuccess) {
+                    Toast.makeText(getContext(), "CSV saved in Download:\n" + message, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getContext(), "Saving error: " + message, Toast.LENGTH_LONG).show();
+                }
+                Log.i(TAG, "CSV savato in Download:\n" + message);
+                bttExportCSV.setEnabled(true);
+            });
+        }
     }
-
-    private String getSelectedAP() {
-        return ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
-    }
-
-    private int getSelectedDistance() {
-        int pos = spinnerDistance.getSelectedItemPosition();
-        return new ArrayList<>(REQUIRED.keySet()).get(pos);
-    }
-
-    private int getMeasureCount(String ap, int distance) {
-        Map<Integer, List<Integer>> byDist = measureData.get(ap);
-        if (byDist == null) return 0;
-        List<Integer> list = byDist.get(distance);
-        return list == null ? 0 : list.size();
-    }
-
 }
