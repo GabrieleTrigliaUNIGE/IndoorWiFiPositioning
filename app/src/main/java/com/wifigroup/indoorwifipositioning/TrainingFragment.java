@@ -1,6 +1,7 @@
 package com.wifigroup.indoorwifipositioning;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.hardware.HardwareHandler;
 import com.wifigroup.indoorwifipositioning.interfaces.ICsvExportCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 import com.wifigroup.indoorwifipositioning.misc.CsvExporter;
@@ -159,10 +161,9 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
     private void setupButtons() {
 
         bttStartScan.setOnClickListener((v) -> {
-            if (!wifiManager.isWifiEnabled()) {
-                Toast.makeText(getContext(),
-                        "WiFi OFF", Toast.LENGTH_LONG).show();
-                wifiManager.setWifiEnabled(true);
+
+            if (!HardwareHandler.isHardwareReady(requireContext(), wifiManager)) {
+                return;
             }
 
             // Dice al receiver quale SSID cercare

@@ -21,6 +21,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.wifigroup.indoorwifipositioning.AP.AccessPoint;
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
 import com.wifigroup.indoorwifipositioning.graphics.GraphManager;
+import com.wifigroup.indoorwifipositioning.hardware.HardwareHandler;
 import com.wifigroup.indoorwifipositioning.interfaces.ICsvReadCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
@@ -82,9 +83,6 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         setupWiFiReceiver();
         setupStartButton();
 
-        // TODO: il bottone false non posso metterlo nella initViews
-        // Disabilitiamo il bottone finché i modelli non sono pronti
-        bttStartDemo.setEnabled(false);
         readCsv();
     }
 
@@ -120,12 +118,18 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         tvLog             = view.findViewById(R.id.tvLog);
         bttStartDemo      = view.findViewById(R.id.bttStartDemo);
 
+        bttStartDemo.setEnabled(false);
+
         GraphView graphMap = view.findViewById(R.id.graphMap);
         graphManager = new GraphManager(graphMap);
     }
 
     private void setupStartButton() {
         bttStartDemo.setOnClickListener(v -> {
+
+            if (!HardwareHandler.isHardwareReady(requireContext(), wifiManager)) {
+                return;
+            }
 
             bttStartDemo.setEnabled(false);
             isScanRequested = true;
@@ -198,10 +202,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                             tvPolynomial.setText(getString(R.string.PolyErr));
                         }
 
-                        // Aggiorna mappa delegando al GraphManager
                         graphManager.updatePositions(posLog, posPoly);
 
-                        // Sblocca il bottone a lavoro finito
                         bttStartDemo.setEnabled(true);
                     });
                 }
@@ -211,7 +213,6 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                         tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
                         tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
 
-                        // Sblocca il bottone anche in caso di errore
                         bttStartDemo.setEnabled(true);
                     });
                 }
@@ -243,7 +244,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             return;
         }
 
-        // CASO 1: Abbiamo letto il file delle misure iniziali
+        // Abbiamo letto il file delle misure iniziali
         if (fileName.equals("MISURE_AP_TOT.csv")) {
             if(isAdded() && getActivity() != null) {
                 getActivity().runOnUiThread(() ->
@@ -254,7 +255,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             meanProcessor.start();
 
         }
-        // CASO 2: Abbiamo letto il file delle coordinate (Arriva dopo onProcessingDone)
+        // Abbiamo letto il file delle coordinate dopo OnProcessingDone
         else if (fileName.equals("AP_COORDINATES.csv")) {
 
             DataPoint[] apDataPoints = new DataPoint[dataRaw.size()];
@@ -288,19 +289,18 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             if(isAdded() && getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
 
-                    // Inviamo i punti validi al Manager Grafico
                     DataPoint[] validPoints = new DataPoint[count];
                     System.arraycopy(apDataPoints, 0, validPoints, 0, count);
                     graphManager.drawRoomAndAPs(validPoints, maxX, maxY);
                     Log.i(TAG, "Mappa aggiornata");
 
                     Toast.makeText(getContext(), "Calculation completed", Toast.LENGTH_LONG).show();
-                    bttStartDemo.setEnabled(true);
-                    Log.i(TAG, "Tabelle salvate in memoria");
+                    bttStartDemo.postDelayed(() -> {
+                        bttStartDemo.setEnabled(true);
+                        Log.i(TAG, "Tabelle salvate in memoria");
+                    }, 3000);
                 });
             }
-
         }
-
     }
 }

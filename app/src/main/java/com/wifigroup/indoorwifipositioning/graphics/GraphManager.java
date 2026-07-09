@@ -53,9 +53,9 @@ public class GraphManager {
 
         graphMap.getViewport().setXAxisBoundsManual(true);
         graphMap.getViewport().setYAxisBoundsManual(true);
-        graphMap.getViewport().setMinX(0 - 1);
+        graphMap.getViewport().setMinX(- 1);
         graphMap.getViewport().setMaxX(roomMaxX + 1);
-        graphMap.getViewport().setMinY(0 - 1);
+        graphMap.getViewport().setMinY(- 1);
         graphMap.getViewport().setMaxY(roomMaxY + 1);
     }
 
