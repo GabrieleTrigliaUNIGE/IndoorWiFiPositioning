@@ -31,6 +31,7 @@
         android:gravity="center_horizontal"
         android:text="@string/Polynomial"
         android:textSize="@dimen/Text"
+        android:textColor="@color/green"
         android:textStyle="bold" />
 
     <TextView
@@ -41,6 +42,7 @@
         android:gravity="center_horizontal"
         android:text="@string/Log"
         android:textSize="@dimen/Text"
+        android:textColor="@color/red"
         android:textStyle="bold" />
 
     <com.jjoe64.graphview.GraphView
