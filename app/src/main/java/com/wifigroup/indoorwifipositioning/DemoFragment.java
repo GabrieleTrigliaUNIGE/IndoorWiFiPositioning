@@ -20,6 +20,7 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.wifigroup.indoorwifipositioning.AP.AccessPoint;
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.constants.AppConstants;
 import com.wifigroup.indoorwifipositioning.graphics.GraphManager;
 import com.wifigroup.indoorwifipositioning.hardware.HardwareHandler;
 import com.wifigroup.indoorwifipositioning.interfaces.ICsvReadCompleted;
@@ -151,7 +152,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     }
 
     private void readCsv(){
-        new CsvReader(requireContext(), "MISURE_AP_TOT.csv", this).start();
+        new CsvReader(requireContext(), AppConstants.CSV_MEASUREMENTS_FILE, this).start();
     }
 
     @Override
@@ -183,13 +184,14 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
             isScanRequested = false;
 
+            // Un solo controllo di sicurezza iniziale
+            if (!isAdded() || getContext() == null) return;
+
             if (liveScanBuffer.size() >= 3) {
 
                 double[] posLog = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, true);
                 double[] posPoly = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, false);
 
-                if (isAdded() && getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
                         if (posLog != null) {
                             tvLog.setText(getString(R.string.LogResults, posLog[0], posLog[1]));
                         } else {
@@ -205,19 +207,14 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                         graphManager.updatePositions(posLog, posPoly);
 
                         bttStartDemo.setEnabled(true);
-                    });
-                }
             } else {
-                if (isAdded() && getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
+
                         tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
                         tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
 
                         graphManager.updatePositions(null, null);
 
                         bttStartDemo.setEnabled(true);
-                    });
-                }
             }
         };
 
@@ -230,7 +227,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         this.tempCalibratedAps = calibratedAps;
 
         Log.i(TAG, "Modelli matematici calcolati. Avvio lettura coordinate...");
-        new CsvReader(requireContext(), "AP_COORDINATES.csv", this).start();
+        new CsvReader(requireContext(), AppConstants.CSV_COORDINATES_FILE, this).start();
     }
 
     @Override
@@ -247,7 +244,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         }
 
         // Abbiamo letto il file delle misure iniziali
-        if (fileName.equals("MISURE_AP_TOT.csv")) {
+        if (fileName.equals(AppConstants.CSV_MEASUREMENTS_FILE)) {
             if(isAdded() && getActivity() != null) {
                 getActivity().runOnUiThread(() ->
                         Toast.makeText(getContext(), "Data loaded! Starting mean computing...", Toast.LENGTH_SHORT).show()
@@ -258,7 +255,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
         }
         // Abbiamo letto il file delle coordinate dopo OnProcessingDone
-        else if (fileName.equals("AP_COORDINATES.csv")) {
+        else if (fileName.equals(AppConstants.CSV_COORDINATES_FILE)) {
 
             DataPoint[] apDataPoints = new DataPoint[dataRaw.size()];
             int count = 0;

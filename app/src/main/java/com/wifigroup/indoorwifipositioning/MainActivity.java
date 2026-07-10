@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragmentContainer, new TrainingFragment())
+                    .add(R.id.fragmentContainer, new DemoFragment())
                     .commit();
         }
 
