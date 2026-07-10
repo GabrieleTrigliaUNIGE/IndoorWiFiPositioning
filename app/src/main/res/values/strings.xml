@@ -22,6 +22,8 @@
     <string name="SpacedColon">: </string>
     <string name="PolynomialPH">Polynomial approximation:\n%s</string>
     <string name="LogPH">Log distance:\n%s</string>
-    <string name="LogAPLow">Log: not enough AP (%d/3)</string>
-    <string name="PolyAPLow">Poly: not enough AP (%d/3)</string>
+    <string name="LogAPLow">Log: not enough AP (%2d/3)</string>
+    <string name="PolyAPLow">Poly: not enough AP (%2d/3)</string>
+    <string name="PollScan">Parsing data ( %2d / %2d )…</string>
+    <string name="KeepStill">Keep the device still!</string>
 </resources>

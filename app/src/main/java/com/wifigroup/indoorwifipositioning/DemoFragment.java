@@ -141,8 +141,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                     if (scanCount < MAX_SCANS) {
                         scanCount++;
 
-                        tvLog.setText("Raccolta dati in corso (" + scanCount + "/" + MAX_SCANS + ")...");
-                        tvPolynomial.setText("Mantenere fermo il dispositivo");
+                        tvLog.setText(getString(R.string.PollScan, scanCount, MAX_SCANS));
+                        tvPolynomial.setText(getString(R.string.KeepStill));
 
                         wifiManager.startScan();
 
