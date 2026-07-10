@@ -8,6 +8,7 @@ import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer
 import com.wifigroup.indoorwifipositioning.AP.AccessPoint;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -60,5 +61,35 @@ public class TrilaterationEngine {
             Log.i(TAG, "Errore trilaterazione: " + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Calcola la "Trimmed Mean" (Media Troncata).
+     * Ordina i valori, scarta il segnale peggiore e quello migliore, fa la media dei restanti.
+     */
+    public static int getStableRssi(List<Integer> rssiList) {
+        if (rssiList == null || rssiList.isEmpty()) return -999;
+
+        if (rssiList.size() <= 2) {
+            // Se abbiamo poche letture, facciamo una media normale
+            int sum = 0;
+            for (int val : rssiList) sum += val;
+            return sum / rssiList.size();
+        }
+
+        // Se abbiamo 3 o più letture, tagliamo gli estremi
+        List<Integer> sorted = new ArrayList<>(rssiList);
+        Collections.sort(sorted);
+
+        // Rimuoviamo il più piccolo (segnale più debole) e il più grande (segnale anomalo)
+        sorted.remove(0);
+        sorted.remove(sorted.size() - 1);
+
+        // Facciamo la media di quello che resta
+        int sum = 0;
+        for (int val : sorted) {
+            sum += val;
+        }
+        return sum / sorted.size();
     }
 }

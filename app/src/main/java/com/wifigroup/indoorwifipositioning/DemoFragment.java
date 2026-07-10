@@ -30,6 +30,8 @@ import com.wifigroup.indoorwifipositioning.misc.CsvReader;
 import com.wifigroup.indoorwifipositioning.processing.CsvDataProcessor;
 import com.wifigroup.indoorwifipositioning.processing.TrilaterationEngine;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,26 +41,20 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     private final String TAG = "DemoFragment";
 
     private TextView tvPolynomial = null;
-
     private TextView tvLog = null;
-
     private Button bttStartDemo = null;
-
     private WifiManager wifiManager = null;
-
     private WiFiReceiver wiFiReceiver = null;
-
+    private GraphManager graphManager = null;
     private Map<String, AccessPoint> roomMap = null;
-
-    private Map<String, Integer> liveScanBuffer = new ConcurrentHashMap<>();
-
     private Map<String, AccessPoint> tempCalibratedAps = null;
 
+    private final Map<String, List<Integer>> liveScanBuffer = new ConcurrentHashMap<>();
+
     private boolean isScanRequested = false;
-
-    private Runnable calculationRunnable = null;
-
-    private GraphManager graphManager = null;
+    private int scanCount = 0;
+    private static final int MAX_SCANS = 5;
+    private Runnable scanLoopRunnable = null;
 
 
     @Override
@@ -101,8 +97,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     public void onDestroyView() {
         super.onDestroyView();
 
-        if (calculationRunnable != null && bttStartDemo != null) {
-            bttStartDemo.removeCallbacks(calculationRunnable);
+        if (scanLoopRunnable != null && bttStartDemo != null) {
+            bttStartDemo.removeCallbacks(scanLoopRunnable);
         }
 
         try {
@@ -134,12 +130,33 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
             bttStartDemo.setEnabled(false);
             isScanRequested = true;
+            scanCount = 0;
             liveScanBuffer.clear();
             wifiManager.startScan();
 
-            tvLog.setText(getString(R.string.LogPH, getString(R.string.Scanning)));
-            tvPolynomial.setText(getString(R.string.PolynomialPH, getString(R.string.Scanning)));
-            Toast.makeText(getContext(), "Wi-Fi scanning started...", Toast.LENGTH_SHORT).show();
+            // Il Cronometro: esegue una scansione ogni 1,2 secondi
+            scanLoopRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (scanCount < MAX_SCANS) {
+                        scanCount++;
+
+                        tvLog.setText("Raccolta dati in corso (" + scanCount + "/" + MAX_SCANS + ")...");
+                        tvPolynomial.setText("Mantenere fermo il dispositivo");
+
+                        wifiManager.startScan();
+
+                        // Richiama se stesso tra 1200 millisecondi
+                        bttStartDemo.postDelayed(this, 1200);
+                    } else {
+                        // Abbiamo finito le scansioni, elaboriamo i dati
+                        isScanRequested = false;
+                        processBufferedScans();
+                    }
+                }
+            };
+
+            scanLoopRunnable.run();
         });
     }
 
@@ -155,11 +172,57 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         new CsvReader(requireContext(), AppConstants.CSV_MEASUREMENTS_FILE, this).start();
     }
 
+    private void processBufferedScans() {
+        if (!isAdded() || getContext() == null) return;
+
+        Map<String, Integer> stableRssiMap = new HashMap<>();
+
+        // 1. Puliamo i dati delegando il calcolo al TrilaterationEngine
+        for (Map.Entry<String, List<Integer>> entry : liveScanBuffer.entrySet()) {
+            String ssid = entry.getKey();
+            List<Integer> allReadings = entry.getValue();
+
+            // CHIAMATA AL MOTORE MATEMATICO
+            int stableValue = TrilaterationEngine.getStableRssi(allReadings);
+            stableRssiMap.put(ssid, stableValue);
+
+            Log.i(TAG, "AP: " + ssid + " | Letture: " + allReadings.toString() + " | Media Pulita: " + stableValue);
+        }
+
+        if (stableRssiMap.size() >= 3) {
+
+            double[] posLog = TrilaterationEngine.calculatePosition(stableRssiMap, roomMap, true);
+            double[] posPoly = TrilaterationEngine.calculatePosition(stableRssiMap, roomMap, false);
+
+            if (posLog != null) {
+                tvLog.setText(getString(R.string.LogResults, posLog[0], posLog[1]));
+            } else {
+                tvLog.setText(getString(R.string.LogErr));
+            }
+
+            if (posPoly != null) {
+                tvPolynomial.setText(getString(R.string.PolyResults, posPoly[0], posPoly[1]));
+            } else {
+                tvPolynomial.setText(getString(R.string.PolyErr));
+            }
+
+            graphManager.updatePositions(posLog, posPoly);
+
+        } else {
+
+            tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
+            tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
+
+            graphManager.updatePositions(null, null);
+
+        }
+
+        bttStartDemo.setEnabled(true);
+        Toast.makeText(getContext(), "DONE!", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
-        if(!isAdded() || getContext() == null) {
-            return;
-        }
 
         if (roomMap == null) {
             Log.i(TAG, "Scansione ricevuta");
@@ -171,54 +234,13 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         if (dBm == -999 || dBm == -998) return;
 
         if (roomMap.containsKey(ssid)) {
-            liveScanBuffer.put(ssid, dBm);
-            Log.i(TAG, "Ricevuto live: " + ssid + " -> " + dBm + " dBm");
-        }
-
-        // Cancella il calcolo in coda se arriva un nuovo Access Point
-        if (calculationRunnable != null && bttStartDemo != null) {
-            bttStartDemo.removeCallbacks(calculationRunnable);
-        }
-
-        calculationRunnable = () -> {
-
-            isScanRequested = false;
-
-            // Un solo controllo di sicurezza iniziale
-            if (!isAdded() || getContext() == null) return;
-
-            if (liveScanBuffer.size() >= 3) {
-
-                double[] posLog = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, true);
-                double[] posPoly = TrilaterationEngine.calculatePosition(liveScanBuffer, roomMap, false);
-
-                        if (posLog != null) {
-                            tvLog.setText(getString(R.string.LogResults, posLog[0], posLog[1]));
-                        } else {
-                            tvLog.setText(getString(R.string.LogErr));
-                        }
-
-                        if (posPoly != null) {
-                            tvPolynomial.setText(getString(R.string.PolyResults, posPoly[0], posPoly[1]));
-                        } else {
-                            tvPolynomial.setText(getString(R.string.PolyErr));
-                        }
-
-                        graphManager.updatePositions(posLog, posPoly);
-
-                        bttStartDemo.setEnabled(true);
-            } else {
-
-                        tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
-                        tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
-
-                        graphManager.updatePositions(null, null);
-
-                        bttStartDemo.setEnabled(true);
+            List<Integer> rssiList = liveScanBuffer.get(ssid);
+            if (rssiList == null) {
+                rssiList = new ArrayList<>();
+                liveScanBuffer.put(ssid, rssiList);
             }
-        };
-
-        bttStartDemo.postDelayed(calculationRunnable, 250);
+            rssiList.add(dBm);
+        }
     }
 
     @Override
