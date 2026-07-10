@@ -1,9 +1,9 @@
 package com.wifigroup.indoorwifipositioning.misc;
 
-import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
+
+import com.wifigroup.indoorwifipositioning.interfaces.ICsvExportCompleted;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -27,7 +27,7 @@ import java.util.Map;
  * @author WiFiGroup
  * @version 1.0.0
  */
-public class CsvExporter {
+public class CsvExporter extends Thread {
 
     private static final String TAG = "CsvExporter";
 
@@ -46,11 +46,25 @@ public class CsvExporter {
      * @param measureData the structured data collection containing the recorded RSSI values,
      * mapped by AP SSID and then by distance
      */
-    public static void exportToDownloads(
-            Context context,
+    private final String[] accessPoints;
+    private final LinkedHashMap<Integer, Integer> requiredMap;
+    private final Map<String, Map<Integer, List<Integer>>> measureData;
+    private final ICsvExportCompleted listener;
+
+    public CsvExporter(
             String[] accessPoints,
             LinkedHashMap<Integer, Integer> requiredMap,
-            Map<String, Map<Integer, List<Integer>>> measureData) {
+            Map<String, Map<Integer, List<Integer>>> measureData,
+            ICsvExportCompleted listener) {
+
+        this.accessPoints = accessPoints;
+        this.requiredMap = requiredMap;
+        this.measureData = measureData;
+        this.listener = listener;
+    }
+
+    @Override
+    public void run() {
 
         try {
             File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -78,11 +92,15 @@ public class CsvExporter {
             }
 
             Log.i(TAG, "CSV saved: " + file.getAbsolutePath());
-            Toast.makeText(context, "CSV saved in Download:\n" + file.getName(), Toast.LENGTH_LONG).show();
+            if (listener != null) {
+                listener.onExportDone(true, file.getName());
+            }
 
         } catch (IOException e) {
             Log.i(TAG, "Error writing CSV: " + e.getMessage());
-            Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            if (listener != null) {
+                listener.onExportDone(false, e.getMessage());
+            }
         }
     }
 }

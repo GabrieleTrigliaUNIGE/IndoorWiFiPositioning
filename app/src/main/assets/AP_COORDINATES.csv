@@ -1,5 +1,5 @@
 Nome_AP,Coordinata_X,Coordinata_Y
-AP1,0.0,0.0
-AP2,0.0,10.0
-AP3,9.0,10.0
-AP4,9.0,0.0
+AP1,9.0,0.0
+AP2,9.0,10.0
+AP3,0.0,10.0
+AP4,0.0,0.0

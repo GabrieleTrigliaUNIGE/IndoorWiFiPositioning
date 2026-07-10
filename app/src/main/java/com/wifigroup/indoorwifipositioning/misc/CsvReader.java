@@ -3,6 +3,8 @@ package com.wifigroup.indoorwifipositioning.misc;
 import android.content.Context;
 import android.util.Log;
 
+import com.wifigroup.indoorwifipositioning.interfaces.ICsvReadCompleted;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -19,12 +21,16 @@ import java.util.List;
  * @author WiFiGroup
  * @version 1.0.0
  */
-public class CsvReader {
-
-    private static final String TAG = "CsvReader";
+public class CsvReader extends  Thread {
 
     // TODO: FARE IL BOOLEAN PER IL SALTO DELLA RIGA
-    // TODO: FARE INTERFACCIA ??
+    private static final String TAG = "CsvReader";
+
+    private final Context context;
+
+    private final String fileName;
+
+    private final ICsvReadCompleted listener;
 
     /**
      * Reads the contents of a CSV file located in the application's assets folder.
@@ -35,9 +41,16 @@ public class CsvReader {
      *
      * @param context the application context used to access the AssetManager
      * @param fileName the name of the CSV file to read (e.g., "data.csv")
-     * @return a list of strings, where each string represents a single line from the CSV file (excluding the header)
-     */
-    public static List<String> readCsvFromAssets(Context context, String fileName) {
+     * @param listener interface implementation
+     * */
+    public CsvReader(Context context, String fileName, ICsvReadCompleted listener) {
+        this.context = context;
+        this.fileName = fileName;
+        this.listener = listener;
+    }
+
+    @Override
+    public void run() {
         List<String> rowCsv = new ArrayList<>();
 
         // context.getAssets().open() per dire ad Android di cercare nel giusto path
@@ -65,6 +78,8 @@ public class CsvReader {
             Log.i(TAG, "Errore durante la lettura del file negli assets: " + e.getMessage());
         }
 
-        return rowCsv;
+        if (listener != null) {
+            listener.onCsvReadDone(rowCsv, fileName);
+        };
     }
 }

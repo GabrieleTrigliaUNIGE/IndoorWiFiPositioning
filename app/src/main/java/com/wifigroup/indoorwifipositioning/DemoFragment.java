@@ -16,8 +16,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
 import com.wifigroup.indoorwifipositioning.AP.AccessPoint;
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.graphics.GraphManager;
+import com.wifigroup.indoorwifipositioning.hardware.HardwareHandler;
+import com.wifigroup.indoorwifipositioning.interfaces.ICsvReadCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IOnProcessingCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
 import com.wifigroup.indoorwifipositioning.misc.CsvReader;
@@ -39,7 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author WiFiGroup
  * @version 1.0.0
  */
-public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnProcessingCompleted {
+public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnProcessingCompleted, ICsvReadCompleted {
+
 
     private final String TAG = "DemoFragment";
 
@@ -57,9 +63,14 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
     private Map<String, Integer> liveScanBuffer = new ConcurrentHashMap<>();
 
+    private Map<String, AccessPoint> tempCalibratedAps = null;
+
     private boolean isScanRequested = false;
 
     private Runnable calculationRunnable = null;
+
+    private GraphManager graphManager = null;
+
 
     /**
      * {@inheritDoc}
@@ -155,15 +166,24 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
         tvPolynomial      = view.findViewById(R.id.tvPolynomial);
         tvLog             = view.findViewById(R.id.tvLog);
         bttStartDemo      = view.findViewById(R.id.bttStartDemo);
+
+        bttStartDemo.setEnabled(false);
+
+        GraphView graphMap = view.findViewById(R.id.graphMap);
+        graphManager = new GraphManager(graphMap);
     }
 
     /**
      * Sets up the start button listener and its initial state.
      */
     private void setupStartButton() {
-        bttStartDemo.setEnabled(false);
-
         bttStartDemo.setOnClickListener(v -> {
+
+            if (!HardwareHandler.isHardwareReady(requireContext(), wifiManager)) {
+                return;
+            }
+
+            bttStartDemo.setEnabled(false);
             isScanRequested = true;
             liveScanBuffer.clear();
             wifiManager.startScan();
@@ -189,19 +209,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
      * Reads the Access Point calibration data from the CSV file located in the assets folder.
      */
     private void readCsv(){
-        List<String> dataRaw = CsvReader.readCsvFromAssets(requireContext(), "MISURE_AP_TOT.csv");
-
-        if (!dataRaw.isEmpty()) {
-
-            Toast.makeText(getContext(), "Data loaded! Starting mean computing...", Toast.LENGTH_SHORT).show();
-
-            CsvDataProcessor meanProcessor = new CsvDataProcessor(dataRaw, this);
-            meanProcessor.start();
-
-        } else {
-            Toast.makeText(getContext(), "ERROR: CSV loading failed!", Toast.LENGTH_LONG).show();
-            Log.i(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
-        }
+        new CsvReader(requireContext(), "MISURE_AP_TOT.csv", this).start();
     }
 
     /**
@@ -230,6 +238,11 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             Log.i(TAG, "Ricevuto live: " + ssid + " -> " + dBm + " dBm");
         }
 
+        // Cancella il calcolo in coda se arriva un nuovo Access Point
+        if (calculationRunnable != null && bttStartDemo != null) {
+            bttStartDemo.removeCallbacks(calculationRunnable);
+        }
+
         calculationRunnable = () -> {
 
             isScanRequested = false;
@@ -252,6 +265,10 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                         } else {
                             tvPolynomial.setText(getString(R.string.PolyErr));
                         }
+
+                        graphManager.updatePositions(posLog, posPoly);
+
+                        bttStartDemo.setEnabled(true);
                     });
                 }
             } else {
@@ -259,6 +276,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                     getActivity().runOnUiThread(() -> {
                         tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
                         tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
+
+                        bttStartDemo.setEnabled(true);
                     });
                 }
             }
@@ -274,34 +293,82 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
     @Override
     public void onProcessingDone(Map<String, AccessPoint> calibratedAps) {
 
-        // TODO: UTILIZZARE LA FUNZIONE READCSV PER LEGGERE IL FILE DELLE COORDINATE?
-        List<String> coordinateLines = CsvReader.readCsvFromAssets(requireContext(), "AP_COORDINATES.csv");
+        this.tempCalibratedAps = calibratedAps;
 
-        for (String line : coordinateLines) {
-            String[] parts = line.split(",");
-            if (parts.length == 3) {
-                String ssid = parts[0];
-                double x = Double.parseDouble(parts[1]);
-                double y = Double.parseDouble(parts[2]);
+        Log.i(TAG, "Modelli matematici calcolati. Avvio lettura coordinate...");
+        new CsvReader(requireContext(), "AP_COORDINATES.csv", this).start();
+    }
 
-                AccessPoint ap = calibratedAps.get(ssid);
+    @Override
+    public void onCsvReadDone(List<String> dataRaw, String fileName) {
 
-                if (ap != null) {
-                    ap.x = x;
-                    ap.y = y;
-                    Log.i(TAG, "Configurato " + ssid + " alla posizione X: " + x + ", Y: " + y);
-                }
+        if (dataRaw.isEmpty()) {
+            if(isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), "ERROR: empty CSV or not found (" + fileName + ")", Toast.LENGTH_LONG).show()
+                );
             }
+            Log.i(TAG, "Lista dati vuota. Controlla che il file sia nella cartella assets e il nome sia corretto.");
+            return;
         }
 
-        this.roomMap = calibratedAps;
+        // Abbiamo letto il file delle misure iniziali
+        if (fileName.equals("MISURE_AP_TOT.csv")) {
+            if(isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), "Data loaded! Starting mean computing...", Toast.LENGTH_SHORT).show()
+                );
+            }
+            CsvDataProcessor meanProcessor = new CsvDataProcessor(dataRaw, this);
+            meanProcessor.start();
 
-        if(isAdded() && getActivity() != null) {
-            getActivity().runOnUiThread(() -> {
-                Toast.makeText(getContext(), "Calculation completed", Toast.LENGTH_LONG).show();
-                bttStartDemo.setEnabled(true);
-                Log.i(TAG, "Tabelle salvate in memoria");
-            });
+        }
+        // Abbiamo letto il file delle coordinate dopo OnProcessingDone
+        else if (fileName.equals("AP_COORDINATES.csv")) {
+
+            DataPoint[] apDataPoints = new DataPoint[dataRaw.size()];
+            int count = 0;
+            double maxX = 9.0;
+            double maxY = 10.0;
+
+            // Uniamo le coordinate lette con i modelli matematici parcheggiati
+            for (String line : dataRaw) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    String ssid = parts[0];
+                    double x = Double.parseDouble(parts[1]);
+                    double y = Double.parseDouble(parts[2]);
+
+                    if (tempCalibratedAps != null) {
+                        AccessPoint ap = tempCalibratedAps.get(ssid);
+
+                        if (ap != null) {
+                            ap.x = x;
+                            ap.y = y;
+                            Log.i(TAG, "Configurato " + ssid + " alla posizione X: " + x + ", Y: " + y);
+                        }
+                    }
+                }
+            }
+
+            // Salvataggio finale nella mappa ufficiale della stanza
+            this.roomMap = tempCalibratedAps;
+
+            if(isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+
+                    DataPoint[] validPoints = new DataPoint[count];
+                    System.arraycopy(apDataPoints, 0, validPoints, 0, count);
+                    graphManager.drawRoomAndAPs(validPoints, maxX, maxY);
+                    Log.i(TAG, "Mappa aggiornata");
+
+                    Toast.makeText(getContext(), "Calculation completed", Toast.LENGTH_LONG).show();
+                    bttStartDemo.postDelayed(() -> {
+                        bttStartDemo.setEnabled(true);
+                        Log.i(TAG, "Tabelle salvate in memoria");
+                    }, 3000);
+                });
+            }
         }
     }
 }

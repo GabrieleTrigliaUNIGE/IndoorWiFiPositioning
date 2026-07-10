@@ -17,11 +17,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/Margin"
-        android:backgroundTint="@color/green"
         android:text="@string/Start"
         android:textColor="@color/black"
         android:textSize="@dimen/Button"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:enabled="false"/>
 
     <TextView
         android:id="@+id/tvPolynomial"
@@ -31,6 +31,7 @@
         android:gravity="center_horizontal"
         android:text="@string/Polynomial"
         android:textSize="@dimen/Text"
+        android:textColor="@color/green"
         android:textStyle="bold" />
 
     <TextView
@@ -41,5 +42,12 @@
         android:gravity="center_horizontal"
         android:text="@string/Log"
         android:textSize="@dimen/Text"
+        android:textColor="@color/red"
         android:textStyle="bold" />
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graphMap"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_marginTop="25dp" />
 </LinearLayout>
