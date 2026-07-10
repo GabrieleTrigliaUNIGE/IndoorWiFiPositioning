@@ -25,7 +25,7 @@ public class GraphManager {
         seriesAPs = new PointsGraphSeries<>();
         seriesAPs.setColor(Color.BLUE);
         seriesAPs.setShape(PointsGraphSeries.Shape.RECTANGLE);
-        seriesAPs.setSize(15f);
+        seriesAPs.setSize(20f);
 
         seriesPosLog = new PointsGraphSeries<>();
         seriesPosLog.setColor(Color.RED);
@@ -53,23 +53,32 @@ public class GraphManager {
 
         graphMap.getViewport().setXAxisBoundsManual(true);
         graphMap.getViewport().setYAxisBoundsManual(true);
-        graphMap.getViewport().setMinX(- 1);
-        graphMap.getViewport().setMaxX(roomMaxX + 1);
-        graphMap.getViewport().setMinY(- 1);
-        graphMap.getViewport().setMaxY(roomMaxY + 1);
+        graphMap.getViewport().setMinX(- 2);
+        graphMap.getViewport().setMaxX(roomMaxX + 3);
+        graphMap.getViewport().setMinY(- 2);
+        graphMap.getViewport().setMaxY(roomMaxY + 2);
+
+        graphMap.getGridLabelRenderer().setNumHorizontalLabels(15);
+        graphMap.getGridLabelRenderer().setNumVerticalLabels(15);
     }
 
     public void updatePositions(double[] posLog, double[] posPoly) {
         if (posLog != null) {
-            double xLog = Math.max(0, Math.min(posLog[0], roomMaxX));
-            double yLog = Math.max(0, Math.min(posLog[1], roomMaxY));
+            double xLog = posLog[0];
+            double yLog = posLog[1];
             seriesPosLog.resetData(new DataPoint[] { new DataPoint(xLog, yLog) });
+        } else {
+            // Passo array vuoto
+            seriesPosLog.resetData(new DataPoint[] {});
         }
 
         if (posPoly != null) {
-            double xPoly = Math.max(0, Math.min(posPoly[0], roomMaxX));
-            double yPoly = Math.max(0, Math.min(posPoly[1], roomMaxY));
+            double xPoly = posPoly[0];
+            double yPoly = posPoly[1];
             seriesPosPoly.resetData(new DataPoint[] { new DataPoint(xPoly, yPoly) });
+        } else {
+            // Passo array vuoto
+            seriesPosPoly.resetData(new DataPoint[] {});
         }
     }
 }
