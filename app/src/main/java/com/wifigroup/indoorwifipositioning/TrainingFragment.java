@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.wifigroup.indoorwifipositioning.BRs.WiFiReceiver;
+import com.wifigroup.indoorwifipositioning.constants.AppConstants;
 import com.wifigroup.indoorwifipositioning.hardware.HardwareHandler;
 import com.wifigroup.indoorwifipositioning.interfaces.ICsvExportCompleted;
 import com.wifigroup.indoorwifipositioning.interfaces.IWiFiScanCompleted;
@@ -27,7 +28,6 @@ import com.wifigroup.indoorwifipositioning.misc.CsvExporter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,24 +35,6 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
 
     private final String TAG = "TrainingFragment";
 
-    // ── Number requested measures per distance ──────────────────────────────────
-    private static final LinkedHashMap<Integer, Integer> REQUIRED = new LinkedHashMap<>();
-
-    static {
-        REQUIRED.put(1, 3);
-        REQUIRED.put(2, 4);
-        REQUIRED.put(3, 6);
-        REQUIRED.put(4, 8);
-        REQUIRED.put(5, 10);
-        REQUIRED.put(6, 12);
-        REQUIRED.put(7, 15);
-    }
-
-    private static final String[] ACCESS_POINTS = {
-            "AP1", "AP2", "AP3", "AP4"
-    };
-
-    // ── UI ────────────────────────────────────────────────────────────────────
     private Spinner spinnerAP = null;
     private Spinner spinnerDistance = null;
     private TextView tvCurrentAP = null;
@@ -130,12 +112,12 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         ArrayAdapter<String> apAdapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                ACCESS_POINTS);
+                AppConstants.ACCESS_POINTS);
         apAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerAP.setAdapter(apAdapter);
 
         List<String> distLabels = new ArrayList<>();
-        for (int d : REQUIRED.keySet()) distLabels.add(d + " m");
+        for (int d : AppConstants.REQUIRED_MEASUREMENTS.keySet()) distLabels.add(d + " m");
 
         ArrayAdapter<String> distAdapter = new ArrayAdapter<>(
                 requireContext(),
@@ -179,8 +161,8 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
             bttExportCSV.setEnabled(false);
             Toast.makeText(getContext(), "Exporting...", Toast.LENGTH_SHORT).show();
             new CsvExporter(
-                    ACCESS_POINTS,
-                    REQUIRED,
+                    AppConstants.ACCESS_POINTS,
+                    AppConstants.REQUIRED_MEASUREMENTS,
                     measureData,
                     this
             ).start();
@@ -201,7 +183,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         String ap       = getSelectedAP();
         int    distance = getSelectedDistance();
         int    done     = getMeasureCount(ap, distance);
-        int    required = REQUIRED.get(distance);
+        int    required = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
         boolean completo = done >= required;
 
         tvCurrentAP.setText(getString(R.string.AccessPointPH, ap));
@@ -213,12 +195,12 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
     }
 
     private String getSelectedAP() {
-        return ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
+        return AppConstants.ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
     }
 
     private int getSelectedDistance() {
         int pos = spinnerDistance.getSelectedItemPosition();
-        return new ArrayList<>(REQUIRED.keySet()).get(pos);
+        return new ArrayList<>(AppConstants.REQUIRED_MEASUREMENTS.keySet()).get(pos);
     }
 
     private int getMeasureCount(String ap, int distance) {
@@ -258,7 +240,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
 
         String ap       = getSelectedAP();
         int    distance = getSelectedDistance();
-        int    required = REQUIRED.get(distance);
+        int    required = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
         int    done     = getMeasureCount(ap, distance);
 
         if (done >= required) {
