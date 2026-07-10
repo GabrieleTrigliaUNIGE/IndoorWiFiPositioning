@@ -23,7 +23,7 @@ import androidx.fragment.app.Fragment;
  * </p>
  *
  * @author WiFiGroup
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -96,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
         bttDemo = findViewById(R.id.bttDemo);
     }
 
+    /**
+     * Checks if GPS permissions ar granted otherwise it asks for them
+     */
     private void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 

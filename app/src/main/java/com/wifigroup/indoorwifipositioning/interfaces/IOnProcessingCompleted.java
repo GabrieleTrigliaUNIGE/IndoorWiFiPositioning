@@ -8,7 +8,7 @@ import java.util.Map;
  * Access Point calibration are completed.
  *
  * @author WiFiGroup
- * @version 1.0.0
+ * @version 1.1.0
  */
 public interface IOnProcessingCompleted {
 

@@ -288,7 +288,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
     /**
      * {@inheritDoc}
-     * * @param calibratedAps the map of the APs configured with their physical coordinates
+     *
+     * @param calibratedAps the map of the APs configured with their physical coordinates
      */
     @Override
     public void onProcessingDone(Map<String, AccessPoint> calibratedAps) {

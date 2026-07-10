@@ -1,7 +1,6 @@
 package com.wifigroup.indoorwifipositioning;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -256,7 +255,9 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
     }
 
-
+    /**
+     * Resets the UI views content
+     */
     private void refreshUI() {
         String ap       = getSelectedAP();
         int    distance = getSelectedDistance();
@@ -272,15 +273,33 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
     }
 
+    /**
+     * Retrieves the currently selected Access Point (SSID) from the UI spinner.
+     *
+     * @return the SSID of the selected Access Point as a String
+     */
     private String getSelectedAP() {
         return ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
     }
 
+    /**
+     * Retrieves the currently selected calibration distance from the UI spinner.
+     *
+     * @return the target distance in meters as an integer
+     */
     private int getSelectedDistance() {
         int pos = spinnerDistance.getSelectedItemPosition();
         return new ArrayList<>(REQUIRED.keySet()).get(pos);
     }
 
+    /**
+     * Retrieves the total number of RSSI measurements collected so far
+     * for a specific Access Point at a specific calibration distance.
+     *
+     * @param ap the SSID of the target Access Point
+     * @param distance the target distance in meters
+     * @return the number of recorded measurements, or 0 if no data exists yet
+     */
     private int getMeasureCount(String ap, int distance) {
         Map<Integer, List<Integer>> byDist = measureData.get(ap);
         if (byDist == null) return 0;
@@ -345,6 +364,14 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
 
         refreshUI();
     }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * In this specific implementation, the export outcome is displayed
+     * to the user via a Toast notification and the export button is re-enabled.
+     * </p>
+     */
     @Override
     public void onExportDone(boolean isSuccess, String message) {
         if(isAdded() && getActivity() != null) {

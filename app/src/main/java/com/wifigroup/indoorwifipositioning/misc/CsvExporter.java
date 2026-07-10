@@ -17,40 +17,35 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Provides utility methods to export collected Wi-Fi measurements to a CSV file.
+ * A background thread designed to export collected Wi-Fi measurements to a CSV file.
  * <p>
- * This class handles the formatting and file I/O operations required to save
- * the training phase data into the device's public Downloads directory. The exported
- * CSV file can then be used for external analysis or calibration of the positioning models.
+ * This class extends {@link Thread} to perform file I/O operations asynchronously,
+ * preventing UI freezes. It handles the formatting and saving of the training phase
+ * data into the device's public Downloads directory. The result of the operation
+ * is communicated back to the caller via a callback interface.
  * </p>
  *
  * @author WiFiGroup
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class CsvExporter extends Thread {
 
     private static final String TAG = "CsvExporter";
 
-    /**
-     * Exports the recorded RSSI measurements to a CSV file in the device's Downloads folder.
-     * <p>
-     * The generated file is named using a timestamp format (e.g., "misure_wifi_YYYYMMDD_HHMMSS.csv")
-     * and contains a standard header followed by the data rows formatted as:
-     * {@code AP, Distanza_m, Misura_n, dBm}. A toast notification is displayed to the user
-     * upon success or failure.
-     * </p>
-     *
-     * @param context the application context used to display UI toast notifications
-     * @param accessPoints an array containing the SSIDs of the target Access Points
-     * @param requiredMap a map defining the required distances for calibration
-     * @param measureData the structured data collection containing the recorded RSSI values,
-     * mapped by AP SSID and then by distance
-     */
     private final String[] accessPoints;
     private final LinkedHashMap<Integer, Integer> requiredMap;
     private final Map<String, Map<Integer, List<Integer>>> measureData;
     private final ICsvExportCompleted listener;
 
+    /**
+     * Initializes a new background thread to export the recorded RSSI measurements.
+     *
+     * @param accessPoints an array containing the SSIDs of the target Access Points
+     * @param requiredMap  a map defining the required distances for calibration
+     * @param measureData  the structured data collection containing the recorded RSSI values,
+     *                     mapped by AP SSID and then by distance
+     * @param listener     the callback interface to be notified upon export completion
+     */
     public CsvExporter(
             String[] accessPoints,
             LinkedHashMap<Integer, Integer> requiredMap,
@@ -63,6 +58,15 @@ public class CsvExporter extends Thread {
         this.listener = listener;
     }
 
+    /**
+     * Executes the file writing operation in a background thread.
+     * <p>
+     * The generated file is named using a timestamp format (e.g., "misure_wifi_YYYYMMDD_HHMMSS.csv")
+     * and contains a standard header followed by the data rows formatted as:
+     * {@code AP, Distanza_m, Misura_n, dBm}. Upon completion or failure,
+     * it triggers the appropriate {@link ICsvExportCompleted#onExportDone(boolean, String)} callback.
+     * </p>
+     */
     @Override
     public void run() {
 

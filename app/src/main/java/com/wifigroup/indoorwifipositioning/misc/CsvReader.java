@@ -11,44 +11,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides utility methods for reading CSV files from the application's assets folder.
+ * A background thread designed to read CSV files from the application's assets folder asynchronously.
  * <p>
- * This class handles the extraction of raw data lines from CSV files bundled
- * with the Android application. It handles the input stream and logs the
- * read process for debugging purposes.
+ * This class extends {@link Thread} to prevent blocking the main UI thread during file I/O operations.
+ * It handles the extraction of raw data lines from bundled CSV files and delivers the resulting
+ * list of strings back to the caller through a callback interface.
  * </p>
  *
  * @author WiFiGroup
- * @version 1.0.0
+ * @version 1.1.0
  */
-public class CsvReader extends  Thread {
+public class CsvReader extends Thread {
 
     // TODO: FARE IL BOOLEAN PER IL SALTO DELLA RIGA
     private static final String TAG = "CsvReader";
 
     private final Context context;
-
     private final String fileName;
-
     private final ICsvReadCompleted listener;
 
     /**
-     * Reads the contents of a CSV file located in the application's assets folder.
-     * <p>
-     * Note: This current implementation automatically skips the first line of the CSV file,
-     * assuming it to be a header row.
-     * </p>
+     * Initializes a new background thread to read the specified CSV file.
      *
      * @param context the application context used to access the AssetManager
      * @param fileName the name of the CSV file to read (e.g., "data.csv")
-     * @param listener interface implementation
-     * */
+     * @param listener the callback interface to be notified when the reading process finishes
+     */
     public CsvReader(Context context, String fileName, ICsvReadCompleted listener) {
         this.context = context;
         this.fileName = fileName;
         this.listener = listener;
     }
 
+    /**
+     * Executes the file reading operation in a background thread.
+     * <p>
+     * Note: This current implementation automatically skips the first line of the CSV file,
+     * assuming it to be a header row. Upon completion, it triggers the
+     * {@link ICsvReadCompleted#onCsvReadDone(List, String)} callback with the extracted data.
+     * </p>
+     */
     @Override
     public void run() {
         List<String> rowCsv = new ArrayList<>();
@@ -80,6 +82,6 @@ public class CsvReader extends  Thread {
 
         if (listener != null) {
             listener.onCsvReadDone(rowCsv, fileName);
-        };
+        }
     }
 }

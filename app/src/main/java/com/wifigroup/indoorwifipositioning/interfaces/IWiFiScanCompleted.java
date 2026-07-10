@@ -4,7 +4,7 @@ package com.wifigroup.indoorwifipositioning.interfaces;
  * Callback interface used to deliver the results of a Wi-Fi scan operation.
  *
  * @author WiFiGroup
- * @version 1.0.0
+ * @version 1.1.0
  */
 public interface IWiFiScanCompleted {
 

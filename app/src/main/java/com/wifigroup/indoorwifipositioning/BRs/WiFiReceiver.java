@@ -22,7 +22,7 @@ import java.util.List;
  * </p>
  *
  * @author WiFiGroup
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class WiFiReceiver extends BroadcastReceiver {
 

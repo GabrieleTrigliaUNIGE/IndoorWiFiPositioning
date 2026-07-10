@@ -10,7 +10,7 @@ package com.wifigroup.indoorwifipositioning.AP;
  * </p>
  *
  * @author WiFiGroup
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class AccessPoint {
 
