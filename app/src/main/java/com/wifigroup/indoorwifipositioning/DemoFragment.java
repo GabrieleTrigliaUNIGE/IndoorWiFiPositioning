@@ -213,6 +213,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
                         tvLog.setText(getString(R.string.LogAPLow, liveScanBuffer.size()));
                         tvPolynomial.setText(getString(R.string.PolyAPLow, liveScanBuffer.size()));
 
+                        graphManager.updatePositions(null, null);
+
                         bttStartDemo.setEnabled(true);
                     });
                 }
@@ -267,18 +269,25 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             for (String line : dataRaw) {
                 String[] parts = line.split(",");
                 if (parts.length == 3) {
-                    String ssid = parts[0];
-                    double x = Double.parseDouble(parts[1]);
-                    double y = Double.parseDouble(parts[2]);
+                    try {
+                        String ssid = parts[0];
+                        double x = Double.parseDouble(parts[1]);
+                        double y = Double.parseDouble(parts[2]);
 
-                    if (tempCalibratedAps != null) {
-                        AccessPoint ap = tempCalibratedAps.get(ssid);
+                        if (tempCalibratedAps != null) {
+                            AccessPoint ap = tempCalibratedAps.get(ssid);
 
-                        if (ap != null) {
-                            ap.x = x;
-                            ap.y = y;
-                            Log.i(TAG, "Configurato " + ssid + " alla posizione X: " + x + ", Y: " + y);
+                            if (ap != null) {
+                                ap.x = x;
+                                ap.y = y;
+                                Log.i(TAG, "Configurato " + ssid + " alla posizione X: " + x + ", Y: " + y);
+
+                                apDataPoints[count] = new DataPoint(x, y);
+                                count++;
+                            }
                         }
+                    } catch (Exception e) {
+                        Log.i(TAG, "Errore nella lettura dei numeri");
                     }
                 }
             }
@@ -286,11 +295,17 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             // Salvataggio finale nella mappa ufficiale della stanza
             this.roomMap = tempCalibratedAps;
 
+            final int finalCount = count;
+
             if(isAdded() && getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
 
-                    DataPoint[] validPoints = new DataPoint[count];
-                    System.arraycopy(apDataPoints, 0, validPoints, 0, count);
+                    DataPoint[] validPoints = new DataPoint[finalCount];
+                    System.arraycopy(apDataPoints, 0, validPoints, 0, finalCount);
+
+                    java.util.Arrays.sort(validPoints, (p1, p2) -> Double.compare(p1.getX(), p2.getX()));
+                    Log.i(TAG, "Array ordinato");
+
                     graphManager.drawRoomAndAPs(validPoints, maxX, maxY);
                     Log.i(TAG, "Mappa aggiornata");
 
