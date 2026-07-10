@@ -1,6 +1,8 @@
 com.wifigroup.indoorwifipositioning
 com.wifigroup.indoorwifipositioning.AP
 com.wifigroup.indoorwifipositioning.BRs
+com.wifigroup.indoorwifipositioning.graphics
+com.wifigroup.indoorwifipositioning.hardware
 com.wifigroup.indoorwifipositioning.interfaces
 com.wifigroup.indoorwifipositioning.misc
 com.wifigroup.indoorwifipositioning.processing
