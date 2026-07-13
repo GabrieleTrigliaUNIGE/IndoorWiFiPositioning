@@ -183,7 +183,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         String ap       = getSelectedAP();
         int    distance = getSelectedDistance();
         int    done     = getMeasureCount(ap, distance);
-        int    required = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
+
+        Integer mappedValue = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
+        int required = (mappedValue != null) ? mappedValue : 0;
+
         boolean completo = done >= required;
 
         tvCurrentAP.setText(getString(R.string.AccessPointPH, ap));
@@ -240,7 +243,10 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
 
         String ap       = getSelectedAP();
         int    distance = getSelectedDistance();
-        int    required = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
+
+        Integer mappedValue = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
+        int required = (mappedValue != null) ? mappedValue : 0;
+
         int    done     = getMeasureCount(ap, distance);
 
         if (done >= required) {

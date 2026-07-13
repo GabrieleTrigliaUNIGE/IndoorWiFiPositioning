@@ -1,9 +1,7 @@
 package com.wifigroup.indoorwifipositioning.misc;
 
-import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.wifigroup.indoorwifipositioning.interfaces.ICsvExportCompleted;
 

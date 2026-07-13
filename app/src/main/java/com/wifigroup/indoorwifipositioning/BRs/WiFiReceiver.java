@@ -48,7 +48,7 @@ public class WiFiReceiver extends BroadcastReceiver {
 
             int dBm = -999;
             for (ScanResult result : wifiScan) {
-                if (targetSSID != null && targetSSID.equals(result.SSID)) {
+                if (targetSSID.equals(result.SSID)) {
                     dBm = result.level;
                     Log.i(TAG, "Trovato " + targetSSID + " → " + dBm + " dBm");
                     break;

@@ -37,8 +37,14 @@ public class CsvDataProcessor extends Thread {
             // THREAD 1: LOGARITMICO
             Thread logThread = new Thread(() -> {
                 for (String ap : meanData.keySet()) {
+
+                    Map<Integer, Double> dataForAp = meanData.get(ap);
+
+                    // Se fosse nulla, saltiamo questo giro
+                    if (dataForAp == null) continue;
+
                     SimpleRegression logRegression = new SimpleRegression();
-                    for (Map.Entry<Integer, Double> entry : meanData.get(ap).entrySet()) {
+                    for (Map.Entry<Integer, Double> entry : dataForAp.entrySet()) {
                         logRegression.addData(10.0 * Math.log10(entry.getKey()), entry.getValue());
                     }
                     double rssi0 = logRegression.getIntercept();
@@ -51,8 +57,14 @@ public class CsvDataProcessor extends Thread {
             // THREAD 2: POLINOMIALE
             Thread polyThread = new Thread(() -> {
                 for (String ap : meanData.keySet()) {
+
+                    Map<Integer, Double> dataForAp = meanData.get(ap);
+
+                    // Se fosse nulla, saltiamo questo giro
+                    if (dataForAp == null) continue;
+
                     WeightedObservedPoints points = new WeightedObservedPoints();
-                    for (Map.Entry<Integer, Double> entry : meanData.get(ap).entrySet()) {
+                    for (Map.Entry<Integer, Double> entry : dataForAp.entrySet()) {
                         points.add(entry.getValue(), entry.getKey());
                     }
                     PolynomialCurveFitter fitter = PolynomialCurveFitter.create(2);
@@ -118,8 +130,14 @@ public class CsvDataProcessor extends Thread {
 
         Map<String, Map<Integer, Double>> means = new HashMap<>();
         for (String ap : grouped.keySet()) {
+
+            Map<Integer, List<Integer>> dataForAp = grouped.get(ap);
+
+            if (dataForAp == null) continue;
+
             Map<Integer, Double> distMeanMap = new HashMap<>();
-            for (Map.Entry<Integer, List<Integer>> entry : grouped.get(ap).entrySet()) {
+
+            for (Map.Entry<Integer, List<Integer>> entry : dataForAp.entrySet()) {
                 double sum = 0;
                 for (int val : entry.getValue()) sum += val;
                 distMeanMap.put(entry.getKey(), sum / entry.getValue().size());

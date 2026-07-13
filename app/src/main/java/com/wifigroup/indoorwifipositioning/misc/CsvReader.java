@@ -12,7 +12,7 @@ import java.util.List;
 
 public class CsvReader extends Thread {
 
-    // TODO: FARE IL BOOLEAN PER IL SALTO DELLA RIGA
+    // TODO: FARE IL BOOLEAN PER GESTIRE SE SALTARE LA RIGA DI INTESTAZIONE O NO
     private static final String TAG = "CsvReader";
 
     private final Context context;

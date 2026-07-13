@@ -218,7 +218,9 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             }
         };
 
-        bttStartDemo.postDelayed(calculationRunnable, 250);
+        if (bttStartDemo != null) {
+            bttStartDemo.postDelayed(calculationRunnable, 250);
+        }
     }
 
     @Override
