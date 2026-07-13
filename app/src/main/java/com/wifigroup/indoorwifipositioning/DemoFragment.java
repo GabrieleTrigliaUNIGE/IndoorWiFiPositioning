@@ -146,8 +146,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
                         wifiManager.startScan();
 
-                        // Richiama se stesso tra 1200 millisecondi
-                        bttStartDemo.postDelayed(this, 1200);
+                        bttStartDemo.postDelayed(this, 3000);
+                        Log.i(TAG, "Scansione numero: " + scanCount + "fresca:" + wifiManager.isWifiEnabled());
                     } else {
                         // Abbiamo finito le scansioni, elaboriamo i dati
                         isScanRequested = false;
