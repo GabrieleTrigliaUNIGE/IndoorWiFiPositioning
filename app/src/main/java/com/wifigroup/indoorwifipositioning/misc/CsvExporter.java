@@ -21,14 +21,14 @@ public class CsvExporter extends Thread {
     private static final String TAG = "CsvExporter";
 
     private final String[] accessPoints;
-    private final LinkedHashMap<Integer, Integer> requiredMap;
-    private final Map<String, Map<Integer, List<Integer>>> measureData;
+    private final LinkedHashMap<Double, Integer> requiredMap;
+    private final Map<String, Map<Double, List<Integer>>> measureData;
     private final ICsvExportCompleted listener;
 
     public CsvExporter(
             String[] accessPoints,
-            LinkedHashMap<Integer, Integer> requiredMap,
-            Map<String, Map<Integer, List<Integer>>> measureData,
+            LinkedHashMap<Double, Integer> requiredMap,
+            Map<String, Map<Double, List<Integer>>> measureData,
             ICsvExportCompleted listener) {
 
         this.accessPoints = accessPoints;
@@ -50,9 +50,9 @@ public class CsvExporter extends Thread {
                 pw.println("AP,Distanza_m,Misura_n,dBm");
 
                 for (String ap : accessPoints) {
-                    for (int dist : requiredMap.keySet()) {
+                    for (double dist : requiredMap.keySet()) {
 
-                        Map<Integer, List<Integer>> byDist = measureData.get(ap);
+                        Map<Double, List<Integer>> byDist = measureData.get(ap);
                         if (byDist == null) continue;
 
                         List<Integer> values = byDist.get(dist);

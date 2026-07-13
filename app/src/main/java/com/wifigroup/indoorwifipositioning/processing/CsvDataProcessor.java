@@ -29,7 +29,7 @@ public class CsvDataProcessor extends Thread {
         Log.i(TAG, "Avvio calcolo Medie dal CSV...");
 
         try {
-            Map<String, Map<Integer, Double>> meanData = calculateMeans(csvLines);
+            Map<String, Map<Double, Double>> meanData = calculateMeans(csvLines);
 
             Map<String, double[]> LogMap = new HashMap<>();
             Map<String, double[]> PolyMap = new HashMap<>();
@@ -38,13 +38,13 @@ public class CsvDataProcessor extends Thread {
             Thread logThread = new Thread(() -> {
                 for (String ap : meanData.keySet()) {
 
-                    Map<Integer, Double> dataForAp = meanData.get(ap);
+                    Map<Double, Double> dataForAp = meanData.get(ap);
 
                     // Se fosse nulla, saltiamo questo giro
                     if (dataForAp == null) continue;
 
                     SimpleRegression logRegression = new SimpleRegression();
-                    for (Map.Entry<Integer, Double> entry : dataForAp.entrySet()) {
+                    for (Map.Entry<Double, Double> entry : dataForAp.entrySet()) {
                         logRegression.addData(10.0 * Math.log10(entry.getKey()), entry.getValue());
                     }
                     double rssi0 = logRegression.getIntercept();
@@ -58,13 +58,13 @@ public class CsvDataProcessor extends Thread {
             Thread polyThread = new Thread(() -> {
                 for (String ap : meanData.keySet()) {
 
-                    Map<Integer, Double> dataForAp = meanData.get(ap);
+                    Map<Double, Double> dataForAp = meanData.get(ap);
 
                     // Se fosse nulla, saltiamo questo giro
                     if (dataForAp == null) continue;
 
                     WeightedObservedPoints points = new WeightedObservedPoints();
-                    for (Map.Entry<Integer, Double> entry : dataForAp.entrySet()) {
+                    for (Map.Entry<Double, Double> entry : dataForAp.entrySet()) {
                         points.add(entry.getValue(), entry.getKey());
                     }
                     PolynomialCurveFitter fitter = PolynomialCurveFitter.create(2);
@@ -118,26 +118,26 @@ public class CsvDataProcessor extends Thread {
         }
     }
 
-    private Map<String, Map<Integer, Double>> calculateMeans(List<String> lines) {
-        Map<String, Map<Integer, List<Integer>>> grouped = new HashMap<>();
+    private Map<String, Map<Double, Double>> calculateMeans(List<String> lines) {
+        Map<String, Map<Double, List<Integer>>> grouped = new HashMap<>();
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 4) continue;
             grouped.computeIfAbsent(parts[0], k -> new HashMap<>())
-                    .computeIfAbsent(Integer.parseInt(parts[1]), k -> new ArrayList<>())
+                    .computeIfAbsent(Double.parseDouble(parts[1]), k -> new ArrayList<>())
                     .add(Integer.parseInt(parts[3]));
         }
 
-        Map<String, Map<Integer, Double>> means = new HashMap<>();
+        Map<String, Map<Double, Double>> means = new HashMap<>();
         for (String ap : grouped.keySet()) {
 
-            Map<Integer, List<Integer>> dataForAp = grouped.get(ap);
+            Map<Double, List<Integer>> dataForAp = grouped.get(ap);
 
             if (dataForAp == null) continue;
 
-            Map<Integer, Double> distMeanMap = new HashMap<>();
+            Map<Double, Double> distMeanMap = new HashMap<>();
 
-            for (Map.Entry<Integer, List<Integer>> entry : dataForAp.entrySet()) {
+            for (Map.Entry<Double, List<Integer>> entry : dataForAp.entrySet()) {
                 double sum = 0;
                 for (int val : entry.getValue()) sum += val;
                 distMeanMap.put(entry.getKey(), sum / entry.getValue().size());

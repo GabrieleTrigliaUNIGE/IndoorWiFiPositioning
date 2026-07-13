@@ -7,16 +7,16 @@ public class AppConstants {
             "AP1", "AP2", "AP3", "AP4"
     };
 
-    public static final LinkedHashMap<Integer, Integer> REQUIRED_MEASUREMENTS = new LinkedHashMap<>();
+    public static final LinkedHashMap<Double, Integer> REQUIRED_MEASUREMENTS = new LinkedHashMap<>();
 
     static {
-        REQUIRED_MEASUREMENTS.put(1, 3);
-        REQUIRED_MEASUREMENTS.put(2, 4);
-        REQUIRED_MEASUREMENTS.put(3, 6);
-        REQUIRED_MEASUREMENTS.put(4, 8);
-        REQUIRED_MEASUREMENTS.put(5, 10);
-        REQUIRED_MEASUREMENTS.put(6, 12);
-        REQUIRED_MEASUREMENTS.put(7, 15);
+        REQUIRED_MEASUREMENTS.put(0.7, 3);
+        REQUIRED_MEASUREMENTS.put(1.4, 4);
+        REQUIRED_MEASUREMENTS.put(2.1, 6);
+        REQUIRED_MEASUREMENTS.put(2.8, 8);
+        REQUIRED_MEASUREMENTS.put(3.5, 10);
+        REQUIRED_MEASUREMENTS.put(4.2, 12);
+        REQUIRED_MEASUREMENTS.put(4.9, 15);
     }
 
     public static final String CSV_MEASUREMENTS_FILE = "MISURE_AP_TOT.csv";

@@ -13,7 +13,7 @@
     <string name="StartScan">Start scanning</string>
     <string name="Scanning">Scanning…</string>
     <string name="AccessPointPH">Access Point: %1$s</string>
-    <string name="DistancePH">Distance: %d m</string>
+    <string name="DistancePH">Distance: %.1f m</string>
     <string name="MeasuresPH">Measures: %d / %d</string>
     <string name="LogResults">Log distance\nX: %.2f m | Y: %.2f m</string>
     <string name="LogErr">Log distance: Convergence error</string>

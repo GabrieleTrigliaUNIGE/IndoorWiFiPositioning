@@ -13,8 +13,8 @@ public class GraphManager {
     private PointsGraphSeries<DataPoint> seriesPosLog;
     private PointsGraphSeries<DataPoint> seriesPosPoly;
 
-    private double roomMaxX = 9.0;
-    private double roomMaxY = 10.0;
+    private double roomMaxX = 7.0;
+    private double roomMaxY = 8.0;
 
     public GraphManager(GraphView graphMap) {
         this.graphMap = graphMap;
@@ -53,13 +53,13 @@ public class GraphManager {
 
         graphMap.getViewport().setXAxisBoundsManual(true);
         graphMap.getViewport().setYAxisBoundsManual(true);
-        graphMap.getViewport().setMinX(- 2);
-        graphMap.getViewport().setMaxX(roomMaxX + 3);
+        graphMap.getViewport().setMinX(- 3);
+        graphMap.getViewport().setMaxX(roomMaxX + 2);
         graphMap.getViewport().setMinY(- 2);
         graphMap.getViewport().setMaxY(roomMaxY + 2);
 
-        graphMap.getGridLabelRenderer().setNumHorizontalLabels(15);
-        graphMap.getGridLabelRenderer().setNumVerticalLabels(15);
+        graphMap.getGridLabelRenderer().setNumHorizontalLabels(13);
+        graphMap.getGridLabelRenderer().setNumVerticalLabels(13);
     }
 
     public void updatePositions(double[] posLog, double[] posPoly) {

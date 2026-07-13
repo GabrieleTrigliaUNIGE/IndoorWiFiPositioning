@@ -47,7 +47,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
     private WiFiReceiver wiFiReceiver = null;
     private boolean onlyOneScan = false;
 
-    private final Map<String, Map<Integer, List<Integer>>> measureData = new HashMap<>();
+    private final Map<String, Map<Double, List<Integer>>> measureData = new HashMap<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -117,7 +117,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         spinnerAP.setAdapter(apAdapter);
 
         List<String> distLabels = new ArrayList<>();
-        for (int d : AppConstants.REQUIRED_MEASUREMENTS.keySet()) distLabels.add(d + " m");
+        for (double d : AppConstants.REQUIRED_MEASUREMENTS.keySet()) distLabels.add(d + " m");
 
         ArrayAdapter<String> distAdapter = new ArrayAdapter<>(
                 requireContext(),
@@ -181,7 +181,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
 
     private void refreshUI() {
         String ap       = getSelectedAP();
-        int    distance = getSelectedDistance();
+        double    distance = getSelectedDistance();
         int    done     = getMeasureCount(ap, distance);
 
         Integer mappedValue = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
@@ -201,13 +201,13 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         return AppConstants.ACCESS_POINTS[spinnerAP.getSelectedItemPosition()];
     }
 
-    private int getSelectedDistance() {
+    private double getSelectedDistance() {
         int pos = spinnerDistance.getSelectedItemPosition();
         return new ArrayList<>(AppConstants.REQUIRED_MEASUREMENTS.keySet()).get(pos);
     }
 
-    private int getMeasureCount(String ap, int distance) {
-        Map<Integer, List<Integer>> byDist = measureData.get(ap);
+    private int getMeasureCount(String ap, double distance) {
+        Map<Double, List<Integer>> byDist = measureData.get(ap);
         if (byDist == null) return 0;
         List<Integer> list = byDist.get(distance);
         return list == null ? 0 : list.size();
@@ -242,7 +242,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         }
 
         String ap       = getSelectedAP();
-        int    distance = getSelectedDistance();
+        double    distance = getSelectedDistance();
 
         Integer mappedValue = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
         int required = (mappedValue != null) ? mappedValue : 0;

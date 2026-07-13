@@ -261,8 +261,8 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
             DataPoint[] apDataPoints = new DataPoint[dataRaw.size()];
             int count = 0;
-            double maxX = 9.0;
-            double maxY = 10.0;
+            double maxX = 7.0;
+            double maxY = 8.0;
 
             // Uniamo le coordinate lette con i modelli matematici parcheggiati
             for (String line : dataRaw) {
