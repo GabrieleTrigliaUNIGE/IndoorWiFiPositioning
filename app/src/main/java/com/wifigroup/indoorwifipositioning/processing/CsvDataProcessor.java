@@ -31,8 +31,8 @@ public class CsvDataProcessor extends Thread {
         try {
             Map<String, Map<Double, Double>> meanData = calculateMeans(csvLines);
 
-            Map<String, double[]> LogMap = new HashMap<>();
-            Map<String, double[]> PolyMap = new HashMap<>();
+            Map<String, double[]> logMap = new HashMap<>();
+            Map<String, double[]> polyMap = new HashMap<>();
 
             // THREAD 1: LOGARITMICO
             Thread logThread = new Thread(() -> {
@@ -50,7 +50,7 @@ public class CsvDataProcessor extends Thread {
                     double rssi0 = logRegression.getIntercept();
                     double n = -logRegression.getSlope();
 
-                    LogMap.put(ap, new double[]{rssi0, n});
+                    logMap.put(ap, new double[]{rssi0, n});
                 }
             });
 
@@ -70,7 +70,7 @@ public class CsvDataProcessor extends Thread {
                     PolynomialCurveFitter fitter = PolynomialCurveFitter.create(2);
                     double[] coeff = fitter.fit(points.toList());
 
-                    PolyMap.put(ap, new double[]{coeff[2], coeff[1], coeff[0]});
+                    polyMap.put(ap, new double[]{coeff[2], coeff[1], coeff[0]});
                 }
             });
 
@@ -85,7 +85,7 @@ public class CsvDataProcessor extends Thread {
             for (String apName : meanData.keySet()) {
                 AccessPoint ap = new AccessPoint(apName);
 
-                double[] logData = LogMap.get(apName);
+                double[] logData = logMap.get(apName);
 
                 if (logData != null) {
                     ap.p_0 = logData[0];
@@ -93,7 +93,7 @@ public class CsvDataProcessor extends Thread {
                     Log.i(TAG, String.format("AP: %s | p_0: %.2f | n: %.3f", apName, ap.p_0, ap.n));
                 }
 
-                double[] polyData = PolyMap.get(apName);
+                double[] polyData = polyMap.get(apName);
 
                 if (polyData != null) {
                     ap.coeffA = polyData[0];

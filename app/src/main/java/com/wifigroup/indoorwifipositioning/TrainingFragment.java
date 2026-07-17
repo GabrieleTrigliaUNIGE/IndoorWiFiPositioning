@@ -93,11 +93,11 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
                 requireActivity().unregisterReceiver(wiFiReceiver);
             }
         } catch (Exception e) {
-            Log.i("WIFI_RECEIVER", "Receiver already disconnected, ignoring error.");
+            Log.i("WIFI_RECEIVER", "Il ricevitore è già disconnesso, ignoro errore.");
         }
     }
 
-    private void initViews(View view) {
+    private void initViews(@NonNull View view) {
         spinnerAP         = view.findViewById(R.id.spinnerAP);
         spinnerDistance   = view.findViewById(R.id.spinnerDistance);
         tvCurrentAP       = view.findViewById(R.id.tvCurrentAP);
@@ -181,20 +181,20 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
 
     private void refreshUI() {
         String ap       = getSelectedAP();
-        double    distance = getSelectedDistance();
-        int    done     = getMeasureCount(ap, distance);
+        double distance = getSelectedDistance();
+        int done        = getMeasureCount(ap, distance);
 
         Integer mappedValue = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
         int required = (mappedValue != null) ? mappedValue : 0;
 
-        boolean completo = done >= required;
+        boolean completed = done >= required;
 
         tvCurrentAP.setText(getString(R.string.AccessPointPH, ap));
         tvCurrentDistance.setText(getString(R.string.DistancePH, distance));
         tvMeasureCount.setText(getString(R.string.MeasuresPH,done,required));
 
-        bttStartScan.setEnabled(!completo);
-        bttStartScan.setText(completo ? "✓ Completed" : "Start scanning");
+        bttStartScan.setEnabled(!completed);
+        bttStartScan.setText(completed ? "✓ Completed" : "Start scanning");
     }
 
     private String getSelectedAP() {
@@ -242,12 +242,12 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         }
 
         String ap       = getSelectedAP();
-        double    distance = getSelectedDistance();
+        double distance = getSelectedDistance();
 
         Integer mappedValue = AppConstants.REQUIRED_MEASUREMENTS.get(distance);
         int required = (mappedValue != null) ? mappedValue : 0;
 
-        int    done     = getMeasureCount(ap, distance);
+        int done = getMeasureCount(ap, distance);
 
         if (done >= required) {
             Toast.makeText(getContext(),
@@ -258,7 +258,7 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         }
 
         measureData
-                .computeIfAbsent(ap,       k -> new HashMap<>())
+                .computeIfAbsent(ap,        k -> new HashMap<>())
                 .computeIfAbsent(distance, k -> new ArrayList<>())
                 .add(dBm);
 
@@ -268,15 +268,15 @@ public class TrainingFragment extends Fragment implements IWiFiScanCompleted, IC
         refreshUI();
     }
     @Override
-    public void onExportDone(boolean isSuccess, String message) {
+    public void onExportDone(boolean isSuccess, String filename) {
         if(isAdded() && getActivity() != null) {
             getActivity().runOnUiThread(() -> {
                 if (isSuccess) {
-                    Toast.makeText(getContext(), "CSV saved in Download:\n" + message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "CSV saved in Download:\n" + filename, Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(getContext(), "Saving error: " + message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Saving error: " + filename, Toast.LENGTH_LONG).show();
                 }
-                Log.i(TAG, "CSV savato in Download:\n" + message);
+                Log.i(TAG, "CSV savato in Download:\n" + filename);
                 bttExportCSV.setEnabled(true);
             });
         }

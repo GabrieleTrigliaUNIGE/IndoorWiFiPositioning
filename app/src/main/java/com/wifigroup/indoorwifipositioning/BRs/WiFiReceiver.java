@@ -64,7 +64,7 @@ public class WiFiReceiver extends BroadcastReceiver {
             for (ScanResult result : wifiScan) {
                 wiFiScanCompleted.onWifiScanCompleted(result.SSID, result.level);
             }
-            Log.i(TAG, "Inviati " + wifiScan.size() + " risultati grezzi al DemoFragment.");
+            Log.i(TAG, "Inviati " + wifiScan.size() + " risultati degli AP al DemoFragment.");
         }
     }
 }

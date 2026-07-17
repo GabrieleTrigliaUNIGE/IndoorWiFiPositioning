@@ -27,7 +27,11 @@ public class TrilaterationEngine {
             if (roomMap.containsKey(ssid)) {
 
                 AccessPoint ap = roomMap.get(ssid);
-                int currentRssi = liveRssi.get(ssid);
+                Integer rssiObj = liveRssi.get(ssid);
+
+                if (ap == null || rssiObj == null) continue;
+
+                int currentRssi = rssiObj;
                 double distance = 0;
 
                 if (isLogModel) {

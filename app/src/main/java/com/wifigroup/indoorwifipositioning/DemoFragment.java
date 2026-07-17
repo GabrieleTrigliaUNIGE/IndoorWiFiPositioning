@@ -157,14 +157,9 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
     @Override
     public void onWifiScanCompleted(String ssid, int dBm) {
-        if(!isAdded() || getContext() == null) {
-            return;
-        }
+        if(!isAdded() || getContext() == null) return;
 
-        if (roomMap == null) {
-            Log.i(TAG, "Scansione ricevuta");
-            return;
-        }
+        if (roomMap == null) return;
 
         if (!isScanRequested) return;
 
@@ -184,7 +179,6 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
 
             isScanRequested = false;
 
-            // Un solo controllo di sicurezza iniziale
             if (!isAdded() || getContext() == null) return;
 
             if (liveScanBuffer.size() >= 3) {
@@ -264,7 +258,7 @@ public class DemoFragment extends Fragment implements IWiFiScanCompleted, IOnPro
             double maxX = 7.0;
             double maxY = 8.0;
 
-            // Uniamo le coordinate lette con i modelli matematici parcheggiati
+            // Uniamo le coordinate lette con i modelli matematici calcolati
             for (String line : dataRaw) {
                 String[] parts = line.split(",");
                 if (parts.length == 3) {
